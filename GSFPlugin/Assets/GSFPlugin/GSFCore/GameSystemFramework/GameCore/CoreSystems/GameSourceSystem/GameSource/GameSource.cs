@@ -103,9 +103,14 @@ namespace GameSystem.GameCore
             return SID;
         }
 
-        public Game.PlayerToken GetPlayerToken()
+        public void Send(int peerID, object obj, Reliability reliability)
         {
-            return Manager.gameInfo.game.GetWaitingPlayer();
+            Manager.Send(peerID, obj, reliability);
+        }
+
+        public void Broadcast(object obj, Reliability reliability)
+        {
+            Manager.Broadcast(obj, reliability);
         }
 
         #region Log methods

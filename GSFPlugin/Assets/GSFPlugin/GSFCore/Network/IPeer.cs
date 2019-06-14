@@ -14,19 +14,11 @@ namespace GameSystem.GameCore.Network
 
     public interface IPeer
     {
-        void Send(object obj, Reliability reliability);
-        void Receive(object obj);
+        int Id { get; }
+        void Send(byte[] bytes, Reliability reliability);
+        void AddPacketEvent(byte[] dgram);
+        void Poll();
     }
 
-    public interface ISerializer
-    {
-        byte[] Serialize(object obj);
-        object Deserialize(byte[] bytes);
-    }
-
-    public interface ISerializer<T>
-    {
-        byte[] Serialize(T item);
-        T Deserialize(byte[] bytes);
-    }
+    
 }

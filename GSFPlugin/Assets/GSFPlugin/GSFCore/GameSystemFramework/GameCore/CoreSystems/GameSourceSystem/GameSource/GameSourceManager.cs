@@ -7,6 +7,7 @@ using ExCollection;
 using System.Reflection;
 using GameSystem.GameCore.Debugger;
 using AdvancedGeneric;
+using GameSystem.GameCore.Network;
 
 namespace GameSystem.GameCore
 {
@@ -43,10 +44,10 @@ namespace GameSystem.GameCore
         public PhysicEngineProxy PhysicEngine { get; private set; }
 
         private IDebugger Debugger;
-        public GameInformation gameInfo;
+        private Game game;
 
         #region Constructor
-        public GameSourceManager(GameInformation gameInfo, PhysicEngineProxy physicEngine, IDebugger debugger)
+        public GameSourceManager(Game game, PhysicEngineProxy physicEngine, IDebugger debugger)
         {
             serialSID = 0;
             //GSList = new KeyedList<uint, GameSource>();
@@ -64,7 +65,7 @@ namespace GameSystem.GameCore
 
             PhysicEngine = physicEngine;
             Debugger = debugger;
-            this.gameInfo = gameInfo;
+            this.game = game;
         }
         #endregion
 
@@ -327,6 +328,18 @@ namespace GameSystem.GameCore
         public void LogWarning(object obj)
         {
             Debugger.LogWarning(obj);
+        }
+        #endregion
+
+        #region Network methods
+        public void Send(int peerID, object obj, Reliability reliability)
+        {
+            game.Send(peerID, obj, reliability);
+        }
+
+        public void Broadcast(object obj, Reliability reliability)
+        {
+            game.Broadcast(obj, reliability);
         }
         #endregion
     }
