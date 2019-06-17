@@ -64,8 +64,10 @@
   <ItemGroup>
     <Compile Include="Assets\AdvencedGeneric\AutoSortList.cs" />
     <Compile Include="Assets\AdvencedGeneric\CollectionExtension.cs" />
+    <Compile Include="Assets\GSFPlugin\ForUnity\ClientPeer.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\DataConverter.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\DefaultGSFFactory.cs" />
+    <Compile Include="Assets\GSFPlugin\ForUnity\GameObjectPool.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\IGSFFactory.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\NetworkSimulator.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\SimpleBoxInfo.cs" />
@@ -145,6 +147,7 @@
     <Compile Include="Assets\GSFPlugin\GSFCore\Network\Packet\PacketUtils\MemberUtility.cs" />
     <Compile Include="Assets\GSFPlugin\GSFCore\Network\Packet\PacketUtils\PacketUtility.cs" />
     <Compile Include="Assets\GSFPlugin\GSFCore\Network\Packet\TypeInfo.cs" />
+    <Compile Include="Assets\GSFPlugin\GSFCore\Network\RUDPProtocol.cs" />
     <Compile Include="Assets\GSFPlugin\GSFCore\ReflectionTool\ReflectionTool.cs" />
     <Compile Include="Assets\GSFPlugin\GSFLauncher\GSFInfoView\GSFComponentView.cs" />
     <Compile Include="Assets\GSFPlugin\GSFLauncher\GSFInfoView\GSFGoView.cs" />
@@ -156,6 +159,7 @@
     <Compile Include="Assets\GSFPlugin\MeshFactory\MeshScripts\MeshFactory.cs" />
     <Compile Include="Assets\GSFPlugin\MeshFactory\MeshScripts\SphereMesh.cs" />
     <Compile Include="Assets\GSFPlugin\Samples\SimpleGame\SimpleBox.cs" />
+    <Compile Include="Assets\GSFPlugin\Samples\SimpleGame\SimpleBoxManager.cs" />
     <Compile Include="Assets\GSFPlugin\Samples\SimpleGame\SimpleGameBuilder.cs" />
     <Compile Include="Assets\LiteNetLib\BaseChannel.cs" />
     <Compile Include="Assets\LiteNetLib\ConnectionRequest.cs" />

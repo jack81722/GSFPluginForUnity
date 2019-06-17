@@ -5,34 +5,37 @@ using UnityEngine;
 
 public class SimpleBoxJobSystem : MonoBehaviour
 {
-    public Stack<SimpleBoxInfo> storage;
-    public List<SimpleBoxInfo> boxList;
+    public ClientPeer peer;
+    public GameObjectPool pool;
+
+    public SimpleBoxInfo prefab;
+
+    public GameObject box1, box2;
 
     private void Start()
     {
-        storage = new Stack<SimpleBoxInfo>();
-        boxList = new List<SimpleBoxInfo>();
+        pool = new GameObjectPool(prefab.gameObject);
+        pool.Supple(10);
+        peer.OnRecvEvent += OnRecv;
+
+        box1 = pool.Get();
+        box2 = pool.Get();
     }
 
-    public void Receive(GSFPacket[] packet)
+    FormmaterSerializer serializer = new FormmaterSerializer();
+
+    public Vector3 ToVector3(float[] floats)
     {
-        // find all add, remove, update target
-
+        return new Vector3(floats[0], floats[1], floats[2]);
     }
 
-    public SimpleBoxInfo Get()
+    public void OnRecv(byte[] dgram, Reliability reliability)
     {
-        SimpleBoxInfo box = storage.Pop();
-        box.gameObject.SetActive(true);
-        boxList.Add(box);
-        return box;
+        float[][] floats = serializer.Deserialize<float[][]>(dgram);
+        Debug.Log($"box1 :{ToVector3(floats[0])}, box2 :{ToVector3(floats[1])}");
+        box1.transform.localPosition = ToVector3(floats[0]);
+        box2.transform.localPosition = ToVector3(floats[1]);
     }
-
-    public void Recycle(SimpleBoxInfo box)
-    {
-        boxList.Remove(box);
-        box.gameObject.SetActive(false);
-        storage.Push(box);
-    }
-
 }
+
+

@@ -5,21 +5,33 @@ using System.Collections.Generic;
 
 namespace GameSystem.GameCore.Network
 {
+    /// <summary>
+    /// Group of stack packets and send 
+    /// </summary>
     public class PeerGroup
     {
         protected ISerializer serializer;
         protected Dictionary<int, IPeer> peers;
 
+        protected PacketEventPool eventPool;
+
+        public delegate void OnReceiveHandler(IPeer peer, byte[] dgram, Reliability reliability);
+        public OnReceiveHandler OnReceiveEvent;
+
         public PeerGroup(ISerializer serializer)
         {
             this.serializer = serializer;
             peers = new Dictionary<int, IPeer>();
+            eventPool = new PacketEventPool();
         }
 
         public void AddPeer(IPeer peer)
-        {   
-            if(!peers.ContainsKey(peer.Id))
+        {
+            if (!peers.ContainsKey(peer.Id))
+            {
                 peers.Add(peer.Id, peer);
+                UnityEngine.Debug.Log("Add peer success");
+            }
         }
 
         public IPeer GetPeer(int peerID)
@@ -31,20 +43,29 @@ namespace GameSystem.GameCore.Network
             throw new InvalidOperationException("Cannot find peer.");
         }
 
-        public void RemovePeer(int peerID)
+        public bool TryGetPeer(int peerID, IPeer peer)
         {
-            peers.Remove(peerID);
+            return peers.TryGetValue(peerID, out peer);
         }
 
-        public virtual void Poll()
+        public bool RemovePeer(int peerID)
         {
-            foreach (var peer in peers.Values)
+            return peers.Remove(peerID);
+        }
+
+        public void Poll()
+        {
+            PacketEvent[] events = eventPool.DequeueAll();
+            for (int i = 0; i < events.Length; i++)
             {
-                peer.Poll();
+                IPeer peer = events[i].GetPeer();
+                byte[] data = events[i].GetData();
+                Reliability reliability = events[i].GetReliability();
+                OnReceiveEvent(peer, data, reliability);
             }
         }
 
-        public virtual void Broadcast(object obj, Reliability reliability)
+        public void Broadcast(object obj, Reliability reliability)
         {
             byte[] bytes = serializer.Serialize(obj);
             foreach (var peer in peers.Values)
@@ -53,7 +74,7 @@ namespace GameSystem.GameCore.Network
             }
         }
 
-        public virtual void Send(int peerID, object obj, Reliability reliability)
+        public void Send(int peerID, object obj, Reliability reliability)
         {
             if (peers.TryGetValue(peerID, out IPeer peer))
             {
@@ -62,30 +83,56 @@ namespace GameSystem.GameCore.Network
             }
 
         }
+
+        public void AddEvent(IPeer peer, byte[] dgram, Reliability reliability)
+        {
+            eventPool.Enqueue(peer, dgram, reliability);
+        }
     }
 
     public class RUDPPeer : IPeer
     {
         NetPeer peer;
-        PacketEventPool eventPool;
-        public delegate void OnReceiveHandler(byte[] dgram);
-        public OnReceiveHandler OnReceiveEvent;
 
         public RUDPPeer(NetPeer peer)
         {
             this.peer = peer;
+            events = new Queue<PacketEvent>();
         }
 
         public int Id { get { return peer.Id; } }
 
-        public void AddPacketEvent(byte[] dgram)
+        public OnReceiveHandler OnRecvEvent { get; set; }
+        public Queue<PacketEvent> events { get; set; }
+
+        public void Disconnect()
         {
-            eventPool.Enqueue(dgram);
+            peer.Disconnect();
         }
 
         public void Poll()
         {
-            eventPool.Invoke(OnReceiveEvent);
+            lock (events)
+            {
+                PacketEvent[] es = events.ToArray();
+                events.Clear();
+                if (OnRecvEvent != null)
+                {
+                    for (int i = 0; i < es.Length; i++)
+                    {
+                        OnRecvEvent.Invoke(es[i].GetData(), es[i].GetReliability());
+                    }
+                }
+            }
+        }
+
+        public void Recv(byte[] bytes, Reliability reliability)
+        {
+            lock (events)
+            {
+                PacketEvent e = new PacketEvent(this, bytes, reliability);
+                events.Enqueue(e);
+            }
         }
 
         public void Send(byte[] bytes, Reliability reliability)
@@ -96,24 +143,60 @@ namespace GameSystem.GameCore.Network
 
     public class PacketEventPool
     {
-        private Queue<byte[]> packets;
+        private Queue<PacketEvent> events;
 
         public PacketEventPool()
         {
-            packets = new Queue<byte[]>();
+            events = new Queue<PacketEvent>();
         }
 
-        public void Enqueue(byte[] dgram)
+        public void Enqueue(IPeer peer, byte[] dgram, Reliability reliability)
         {
-            packets.Enqueue(dgram);
+            events.Enqueue(new PacketEvent(peer, dgram, reliability));
         }
 
-        public void Invoke(RUDPPeer.OnReceiveHandler d)
+        public PacketEvent Dequeue()
         {
-            while(packets.Count > 0)
-                d.Invoke(packets.Dequeue());
-            packets.Clear();
+            return events.Dequeue();
+        }
+
+        public PacketEvent[] DequeueAll()
+        {
+            PacketEvent[] all;
+            lock (events)
+                all = events.ToArray();
+            events.Clear();
+            return all;
         }
     }
  
+    public class PacketEvent
+    {
+        IPeer peer;
+        byte[] dgram;
+        Reliability reliability;
+
+        public PacketEvent(IPeer peer, byte[] dgram, Reliability reliability)
+        {
+            this.peer = peer;
+            this.dgram = dgram;
+            this.reliability = reliability;
+        }
+
+        public IPeer GetPeer()
+        {
+            return peer;
+        }
+
+        public byte[] GetData()
+        {
+            return dgram;
+        }
+
+        public Reliability GetReliability()
+        {
+            return reliability;
+        }
+    }
+
 }

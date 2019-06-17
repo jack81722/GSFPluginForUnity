@@ -18,11 +18,17 @@ public class GSFLauncher : UnityEngine.MonoBehaviour
 
     private IDebugger debugger;
 
+    public int serverPort = 8888;
+    public string connectKey = "Test";
+    public int maxPeers = 10;
+
     public void Awake()
     {
         debugger = new UnityDebugger();
         IPhysicEngineFactory physicEngineFactory = new BulletEngineFactory();
         server = new VirtualServer(debugger);
+        server.ConnectKey = connectKey;
+        server.MaxPeers = maxPeers;
         builder = new SimpleGameBuilder(debugger);
     }
 
@@ -43,7 +49,12 @@ public class GSFLauncher : UnityEngine.MonoBehaviour
     {
         Log("Launching...");
         //server.Start(8888);
-        GSFTask = Task.Factory.StartNew(() => server.Start(8888));
+        GSFTask = Task.Factory.StartNew(() => server.Start(serverPort));
+    }
+
+    public void StartGame()
+    {
+        server.StartGame();
     }
 
     private void Stop()

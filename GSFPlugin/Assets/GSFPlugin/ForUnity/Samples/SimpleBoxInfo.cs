@@ -13,7 +13,7 @@ public class SimpleBoxInfo : MonoBehaviour
 
     private void LateUpdate()
     {
-        transform.position = position;
+        //transform.position = position;
     }
 }
 

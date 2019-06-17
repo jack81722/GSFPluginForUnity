@@ -24,7 +24,7 @@ namespace GameSystem.GameCore
         bool running;
         PhysicEngineProxy physicEngine;
         GameSourceManager gameSourceManager;
-        PeerGroup peerGroup;
+        public PeerGroup peerGroup;
 
         public Game(int gameID, IPhysicEngineFactory physicEngineFactory, IDebugger debugger)
         {
@@ -45,6 +45,7 @@ namespace GameSystem.GameCore
 
         public void Start()
         {
+            UnityEngine.Debug.Log("Start Game");
             loopTask = Task.Factory.StartNew(GameLoop);
         }
 

@@ -199,7 +199,7 @@ namespace GameSystem.GameCore.Network
             
             Type[] types = Assembly.GetAssembly(typeof(PacketUtility)).GetTypes();
             for (int i = 0; i < types.Length; i++)
-            {   
+            {
                 if (types[i].IsDefined(packableAttr))
                 {
                     // add all utilities defined packable/unpackable attribute

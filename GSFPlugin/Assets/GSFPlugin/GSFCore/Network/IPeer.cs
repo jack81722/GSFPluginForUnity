@@ -15,10 +15,15 @@ namespace GameSystem.GameCore.Network
     public interface IPeer
     {
         int Id { get; }
+        OnReceiveHandler OnRecvEvent { get; set; }
+
+        Queue<PacketEvent> events { get; set; }
+
         void Send(byte[] bytes, Reliability reliability);
-        void AddPacketEvent(byte[] dgram);
+        void Recv(byte[] bytes, Reliability reliability);
         void Poll();
+        void Disconnect();
     }
 
-    
+    public delegate void OnReceiveHandler(byte[] dgram, Reliability reliability);
 }

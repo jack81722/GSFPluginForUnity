@@ -11,14 +11,16 @@ namespace GameSystem.GameCore.Network
     {
         public T Deserialize<T>(byte[] dgram)
         {
-            GSFPacket packet = (GSFPacket)ToObject(dgram);
-            return PacketUtility.Unpack<T>(packet);
+            //GSFPacket packet = (GSFPacket)ToObject(dgram);
+            //return PacketUtility.Unpack<T>(packet);
+            return (T)ToObject(dgram);
         }
 
         public byte[] Serialize(object obj)
         {
-            GSFPacket packet = PacketUtility.Pack(obj);
-            return ToByteArray(packet);
+            //GSFPacket packet = PacketUtility.Pack(obj);
+            //return ToByteArray(packet);
+            return ToByteArray(obj);
         }
 
         private byte[] ToByteArray(object source)
