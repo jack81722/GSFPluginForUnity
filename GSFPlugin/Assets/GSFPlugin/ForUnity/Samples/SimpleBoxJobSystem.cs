@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class SimpleBoxJobSystem : MonoBehaviour
 {
-    public ClientPeer peer;
     public GameObjectPool pool;
 
     public SimpleBoxInfo prefab;
@@ -16,7 +15,6 @@ public class SimpleBoxJobSystem : MonoBehaviour
     {
         pool = new GameObjectPool(prefab.gameObject);
         pool.Supple(10);
-        peer.OnRecvEvent += OnRecv;
 
         box1 = pool.Get();
         box2 = pool.Get();
@@ -29,13 +27,15 @@ public class SimpleBoxJobSystem : MonoBehaviour
         return new Vector3(floats[0], floats[1], floats[2]);
     }
 
-    public void OnRecv(byte[] dgram, Reliability reliability)
+    public void OnRecv(Peer peer, byte[] dgram, Reliability reliability)
     {
         float[][] floats = serializer.Deserialize<float[][]>(dgram);
         Debug.Log($"box1 :{ToVector3(floats[0])}, box2 :{ToVector3(floats[1])}");
         box1.transform.localPosition = ToVector3(floats[0]);
         box2.transform.localPosition = ToVector3(floats[1]);
     }
+
+
 }
 
 

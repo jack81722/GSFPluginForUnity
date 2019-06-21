@@ -296,6 +296,18 @@ namespace GameSystem.GameCore
             return source;
         }
 
+        Queue<Action> endframeActions = new Queue<Action>();
+        public void StartTask(Action action)
+        {
+            endframeActions.Enqueue(action);
+        }
+
+        public void ExecuteEndOfFrameTasks()
+        {
+            while (endframeActions.Count > 0)
+                endframeActions.Dequeue().Invoke();
+        }
+
         public void Clear()
         {
             lock(GSList)
@@ -341,6 +353,16 @@ namespace GameSystem.GameCore
         {
             game.Broadcast(obj, reliability);
         }
+
+        public JoinGroupRequest[] GetJoinRequests()
+        {
+            return game.GetJoinPeerList().ToArray();
+        }
         #endregion
+
+        public int GetGameID()
+        {
+            return game.GetGameID();
+        }
     }
 }

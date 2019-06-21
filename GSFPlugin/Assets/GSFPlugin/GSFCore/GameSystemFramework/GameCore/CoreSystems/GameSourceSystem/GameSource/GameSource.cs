@@ -113,6 +113,16 @@ namespace GameSystem.GameCore
             Manager.Broadcast(obj, reliability);
         }
 
+        public JoinGroupRequest[] GetJoinRequests()
+        {
+            return Manager.GetJoinRequests();
+        }
+
+        public int GetGameID()
+        {
+            return Manager.GetGameID();
+        }
+
         #region Log methods
         public void Log(object obj)
         {

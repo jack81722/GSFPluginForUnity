@@ -14,7 +14,7 @@ public class GSFLauncher : UnityEngine.MonoBehaviour
 
     protected Task GSFTask;
     protected SceneBuilder builder;
-    VirtualServer server;
+    //VirtualServer server;
 
     private IDebugger debugger;
 
@@ -22,14 +22,19 @@ public class GSFLauncher : UnityEngine.MonoBehaviour
     public string connectKey = "Test";
     public int maxPeers = 10;
 
+    ServerPeer serverPeer;
+
     public void Awake()
     {
         debugger = new UnityDebugger();
-        IPhysicEngineFactory physicEngineFactory = new BulletEngineFactory();
-        server = new VirtualServer(debugger);
-        server.ConnectKey = connectKey;
-        server.MaxPeers = maxPeers;
+        //server = new VirtualServer(debugger);
+        //server.ConnectKey = connectKey;
+        //server.MaxPeers = maxPeers;
+        
         builder = new SimpleGameBuilder(debugger);
+        serverPeer = new MyServerPeer(new FormmaterSerializer());
+        serverPeer.MaxPeers = maxPeers;
+        serverPeer.ConnectKey = connectKey;
     }
 
     private void Start()
@@ -49,17 +54,19 @@ public class GSFLauncher : UnityEngine.MonoBehaviour
     {
         Log("Launching...");
         //server.Start(8888);
-        GSFTask = Task.Factory.StartNew(() => server.Start(serverPort));
+        //GSFTask = Task.Factory.StartNew(() => server.Start(serverPort));
+        serverPeer.Start(8888);
     }
 
     public void StartGame()
     {
-        server.StartGame();
+        //server.StartGame();
     }
 
     private void Stop()
     {
-        server.Close();
+        //server.Close();
+        serverPeer.Close();
         if (GSFTask != null) GSFTask.Wait();
     }
 

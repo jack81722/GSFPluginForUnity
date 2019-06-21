@@ -7,6 +7,7 @@ namespace GameSystem.GameCore.Network
     public interface ISerializer
     {
         byte[] Serialize(object obj);
+        object Deserialize(byte[] bytes);
         T Deserialize<T>(byte[] bytes);
     }
 

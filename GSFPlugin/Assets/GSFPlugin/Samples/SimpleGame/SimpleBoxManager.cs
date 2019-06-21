@@ -12,7 +12,15 @@ public class SimpleBoxManager : Component
 
     public override void Start()
     {
+        var joinReqs = GetJoinRequests();
+        for(int i = 0; i < joinReqs.Length; i++)
+        {
+            Log("Accept");
+            joinReqs[i].Accept(GetGameID());
+        }
+
         box_go1 = CreateGameObject();
+        box_go1.Name = "Box1";
         // add simple box component
         char_com1 = box_go1.AddComponent<SimpleBox>();
         char_com1.velocity = new Vector3(3, 0, 0);
@@ -22,6 +30,7 @@ public class SimpleBoxManager : Component
 
         // create box2 cloned by box1
         box_go2 = Instantiate(box_go1);
+        box_go2.Name = "box2";
         // get simple box component
         char_com2 = box_go2.GetComponent<SimpleBox>();
         char_com2.velocity = new Vector3(-3, 0, 0);
@@ -48,6 +57,6 @@ public class SimpleBoxManager : Component
         box_go1.transform.position += char_com1.velocity * second;
         box_go2.transform.position += char_com2.velocity * second;
 
-        Broadcast(new float[][] { ToFloatArray(box_go1.transform.position), ToFloatArray(box_go2.transform.position) }, GameSystem.GameCore.Network.Reliability.Unreliable);
+        Broadcast(new float[][] { ToFloatArray(box_go1.transform.position), ToFloatArray(box_go2.transform.position) }, GameSystem.GameCore.Network.Reliability.Sequence);
     }
 }

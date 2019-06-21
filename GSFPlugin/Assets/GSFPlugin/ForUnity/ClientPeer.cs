@@ -1,54 +1,47 @@
 ﻿using GameSystem.GameCore.Network;
+using LiteNetLib;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
-public class ClientPeer : MonoBehaviour
+public class ClientPeer : Peer
 {
-    RUDPProtocol protocol;
-    RUDPPeer peer;
-    ISerializer serializer;
+    public EventBasedNetListener listener;
+    public NetManager netManager;
 
-    public string serverIp = "127.0.0.1";
-    public int serverPort = 8888;
-    public string connectKey = "Test";
-
-    public OnReceiveHandler OnRecvEvent;
-
-    private void Start()
+    public ClientPeer() : base()
     {
-        protocol = new RUDPProtocol();
-        serializer = new FormmaterSerializer();
+        listener = new EventBasedNetListener();
+        listener.NetworkReceiveEvent += Listener_NetworkReceiveEvent;
+        netManager = new NetManager(listener);
+        netManager.Start();
     }
 
-    public void Connect(string ip, int port, string key)
+    private void Listener_NetworkReceiveEvent(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod)
     {
-        protocol.Start();
-        peer = (RUDPPeer)protocol.Connect(ip, port, key);
-        peer.OnRecvEvent += OnReceiveEvent;
+        byte[] dgram = new byte[reader.AvailableBytes];
+        reader.GetBytes(dgram, dgram.Length);
+        OnPeerReceiveEvent.Invoke(this, dgram, (Reliability)deliveryMethod);
     }
 
-    public void OnReceiveEvent(byte[] dgram, Reliability reliability)
+    public void Connect(string ipAddr, int port, string connectKey)
     {
-        OnRecvEvent(dgram, reliability);
+        UnityEngine.Debug.Log($"Connect to [{ipAddr}:{port}, \"{connectKey}\"]");
+        NetPeer p = netManager.Connect(ipAddr, port, connectKey);
+        p.Tag = this;
     }
 
-    public void ClickToConnect()
+    public override void Disconnect()
     {
-        Connect(serverIp, serverPort, connectKey);
+        netManager.DisconnectAll();
     }
 
-    private void Update()
+    public override void Send(byte[] bytes, Reliability reliability)
     {
-        if (peer != null)
-        {
-            peer.Poll();
-        }
+        netManager.SendToAll(bytes, (DeliveryMethod)reliability);
     }
 
-    public void OnDestroy()
+    public override void Poll()
     {
-        peer.Disconnect();
-        protocol.Close();
+        netManager.PollEvents();
     }
 }
