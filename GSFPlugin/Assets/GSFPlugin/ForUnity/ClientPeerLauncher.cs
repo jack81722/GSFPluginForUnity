@@ -1,6 +1,7 @@
 ﻿using GameSystem.GameCore.Network;
 using LiteNetLib;
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,8 +10,7 @@ using UnityEngine.Events;
 
 public class ClientPeerLauncher : MonoBehaviour
 {
-    Peer peer;
-    ISerializer serializer;
+    private ClientPeer peer;
 
     public string serverIp = "127.0.0.1";
     public int serverPort = 8888;
@@ -18,14 +18,18 @@ public class ClientPeerLauncher : MonoBehaviour
 
     private void Start()
     {
-        peer = new ClientPeer();
-        peer.OnPeerReceiveEvent += OnReceiveDgram;
-        serializer = new FormmaterSerializer();
+        peer = new SimpleClientPeer(new FormmaterSerializer());
+        IEnumerable<IPacketReceiver> receivers = FindObjectsOfType<MonoBehaviour>().OfType<IPacketReceiver>();
+        foreach(var receiver in receivers)
+        {
+            ((SimpleClientPeer)peer).AddReceiver(receiver);
+            Debug.Log($"Add receiver : {receiver}");
+        }
     }
 
     public void Connect(string ip, int port, string key)
     {   
-        ((ClientPeer)peer).Connect(ip, port, key);
+        peer.Connect(ip, port, key);
     }
 
     public void ClickToConnect()
@@ -35,42 +39,17 @@ public class ClientPeerLauncher : MonoBehaviour
 
     public void ClickToJoinGame()
     {
-        byte[] dgram = serializer.Serialize(new object[] { 0, "Join game." });
-        peer.Send(dgram, Reliability.ReliableOrder);
+        peer.Send(new object[] { 0, "Join game." }, Reliability.ReliableOrder);
     }
 
     public void ClickToStartGame()
     {
-        byte[] dgram = serializer.Serialize(new object[] { 1, "Start game." });
-        peer.Send(dgram, Reliability.ReliableOrder);
+        peer.Send(new object[] { 1, "Start game." }, Reliability.ReliableOrder);
     }
 
     public void ClickToSayHello()
     {
-        byte[] dgram = serializer.Serialize(new object[] { -1, "Hello" });
-        peer.Send(dgram, Reliability.ReliableOrder);
-    }
-
-    public void OnReceiveDgram(Peer peer, byte[] dgram, Reliability reliability)
-    {
-        try
-        {
-            object obj = serializer.Deserialize(dgram);
-            object[] packet = obj as object[];
-            if (packet != null)
-            {
-                switch ((int)packet[0])
-                {
-                    case 0:
-                        Debug.Log(packet[1]);
-                        break;
-                }
-            }
-        }
-        catch
-        {
-
-        }
+        peer.Send(new object[] { -1, "Hello" }, Reliability.ReliableOrder);
     }
 
     private void Update()

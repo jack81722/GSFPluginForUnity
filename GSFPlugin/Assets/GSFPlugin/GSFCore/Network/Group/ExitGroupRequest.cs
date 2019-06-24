@@ -7,13 +7,13 @@ namespace GameSystem.GameCore.Network
     public class ExitGroupRequest
     {
         public int GroupId { get; private set; }
-        public Peer Peer { get; private set; }
+        public IPeer Peer { get; private set; }
         public object Arg { get; private set; }
 
         private TaskCompletionSource<JoinGroupResponse> tcs;
         public Task<JoinGroupResponse> Task { get { return tcs.Task; } }
 
-        public ExitGroupRequest(int groupId, Peer peer, object arg)
+        public ExitGroupRequest(int groupId, IPeer peer, object arg)
         {
             GroupId = groupId;
             Peer = peer;

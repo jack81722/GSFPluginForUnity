@@ -72,7 +72,7 @@ namespace GameSystem.GameCore.Network
         protected abstract void LoopLogic();
 
         Queue<PacketEvent> events;
-        private void MainReceiveLogic(Peer peer, object obj, Reliability reliability)
+        private void MainReceiveLogic(IPeer peer, object obj, Reliability reliability)
         {
             if (LoopPeriod == 0)
             {
@@ -82,7 +82,7 @@ namespace GameSystem.GameCore.Network
             events.Enqueue(new PacketEvent(peer, obj, reliability));
         }
 
-        protected abstract void ReceiveLogic(Peer peer, object obj, Reliability reliability);
+        protected abstract void ReceiveLogic(IPeer peer, object obj, Reliability reliability);
 
         #region Join request methods
         private void HandleJoinRequests()
@@ -93,22 +93,16 @@ namespace GameSystem.GameCore.Network
 
         protected virtual void OnJoinRequestEvent(JoinGroupRequest request)
         {
-            debugger.Log("handle request");
             request.Accept(null);
-            GroupedPacket packet = new GroupedPacket();
-            packet.groupId = 0;
-            packet.data = request.Task.Result;
-            debugger.Log(request.Task.Result);
-            request.Peer.Send(serializer.Serialize(packet), Reliability.ReliableOrder);
         }
 
-        public async Task<JoinGroupResponse> Join(Peer peer, object arg)
+        public async Task<JoinGroupResponse> Join(IPeer peer, object arg)
         {
             return await group.JoinAsync(peer, arg);
         }
         #endregion
 
-        public List<Peer> GetPeerList()
+        public List<IPeer> GetPeerList()
         {
             return group.GetPeerList();
         }

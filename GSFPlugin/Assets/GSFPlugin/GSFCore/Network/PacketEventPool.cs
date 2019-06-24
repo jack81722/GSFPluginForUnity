@@ -13,7 +13,7 @@ namespace GameSystem.GameCore.Network
             events = new Queue<PacketEvent>();
         }
 
-        public void Enqueue(Peer peer, object obj, Reliability reliability)
+        public void Enqueue(IPeer peer, object obj, Reliability reliability)
         {
             lock(events)
                 events.Enqueue(new PacketEvent(peer, obj, reliability));
@@ -41,7 +41,7 @@ namespace GameSystem.GameCore.Network
         }
 
         private static Queue<PacketEvent> stack = new Queue<PacketEvent>();
-        public static PacketEvent Create(Peer peer, object data, Reliability reliability)
+        public static PacketEvent Create(IPeer peer, object data, Reliability reliability)
         {
             PacketEvent packet;
             if (stack.Count > 0)
@@ -65,18 +65,18 @@ namespace GameSystem.GameCore.Network
 
     public class PacketEvent
     {   
-        private Peer peer;
+        private IPeer peer;
         private object data;
         private Reliability reliability;
 
-        public PacketEvent(Peer peer, object data, Reliability reliability)
+        public PacketEvent(IPeer peer, object data, Reliability reliability)
         {
             this.peer = peer;
             this.data = data;
             this.reliability = reliability;
         }
 
-        public Peer GetPeer()
+        public IPeer GetPeer()
         {
             return peer;
         }
@@ -91,7 +91,7 @@ namespace GameSystem.GameCore.Network
             return reliability;
         }
 
-        public void Set(Peer peer, object data, Reliability reliability)
+        public void Set(IPeer peer, object data, Reliability reliability)
         {
             this.peer = peer;
             this.data = data;

@@ -20,7 +20,7 @@ namespace GameSystem.GameCore.Network
             debugger.Log("Running");
         }
 
-        protected override void ReceiveLogic(Peer peer, object obj, Reliability reliability)
+        protected override void ReceiveLogic(IPeer peer, object obj, Reliability reliability)
         {
 
         }

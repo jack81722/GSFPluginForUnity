@@ -3,45 +3,62 @@ using LiteNetLib;
 using System.Collections;
 using System.Collections.Generic;
 
-public class ClientPeer : Peer
+namespace GameSystem.GameCore.Network
 {
-    public EventBasedNetListener listener;
-    public NetManager netManager;
-
-    public ClientPeer() : base()
+    public abstract class ClientPeer : IPeer
     {
-        listener = new EventBasedNetListener();
-        listener.NetworkReceiveEvent += Listener_NetworkReceiveEvent;
-        netManager = new NetManager(listener);
-        netManager.Start();
-    }
+        protected EventBasedNetListener listener;
+        protected NetManager netManager;
+        protected NetPeer peer;
+        protected ISerializer serializer;
 
-    private void Listener_NetworkReceiveEvent(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod)
-    {
-        byte[] dgram = new byte[reader.AvailableBytes];
-        reader.GetBytes(dgram, dgram.Length);
-        OnPeerReceiveEvent.Invoke(this, dgram, (Reliability)deliveryMethod);
-    }
+        public int Id { get { return peer.Id; } }
 
-    public void Connect(string ipAddr, int port, string connectKey)
-    {
-        UnityEngine.Debug.Log($"Connect to [{ipAddr}:{port}, \"{connectKey}\"]");
-        NetPeer p = netManager.Connect(ipAddr, port, connectKey);
-        p.Tag = this;
-    }
+        public ClientPeer(ISerializer serializer) : base()
+        {
+            this.serializer = serializer;
+            listener = new EventBasedNetListener();
+            listener.NetworkReceiveEvent += Listener_NetworkReceiveEvent;
+            netManager = new NetManager(listener);
+            netManager.Start();
+        }
 
-    public override void Disconnect()
-    {
-        netManager.DisconnectAll();
-    }
+        private void Listener_NetworkReceiveEvent(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod)
+        {
+            byte[] dgram = new byte[reader.AvailableBytes];
+            reader.GetBytes(dgram, dgram.Length);
+            object packet = serializer.Deserialize(dgram);
+            OnReceivePacket(packet, (Reliability)deliveryMethod);
+        }
 
-    public override void Send(byte[] bytes, Reliability reliability)
-    {
-        netManager.SendToAll(bytes, (DeliveryMethod)reliability);
-    }
+        public void Connect(string ipAddr, int port, string connectKey)
+        {
+            UnityEngine.Debug.Log($"Connect to [{ipAddr}:{port}, \"{connectKey}\"]");
+            peer = netManager.Connect(ipAddr, port, connectKey);
+            peer.Tag = this;
+        }
 
-    public override void Poll()
-    {
-        netManager.PollEvents();
+        public abstract void OnReceivePacket(object packet, Reliability reliability);
+
+        public void Send(object packet, Reliability reliability)
+        {
+            byte[] dgram = serializer.Serialize(packet);
+            peer.Send(dgram, (DeliveryMethod)reliability);
+        }
+
+        public void Send(byte[] bytes, Reliability reliability)
+        {
+            peer.Send(bytes, (DeliveryMethod)reliability);
+        }
+
+        public void Poll()
+        {
+            netManager.PollEvents();
+        }
+
+        public void Disconnect()
+        {
+            netManager.DisconnectAll();
+        }
     }
 }

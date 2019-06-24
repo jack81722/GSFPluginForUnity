@@ -43,7 +43,7 @@ public class Simulator : MonoBehaviour
                 {
                     Debug.Log("Create box mesh");
                     IBoxShape shape = (IBoxShape)gs;
-                    ThreadPipe.Call(factory.SpawnBoxMesh, go, shape.HalfSize.ToUnity(), null);
+                    //ThreadPipe.Call(factory.SpawnBoxMesh, go, shape.HalfSize.ToUnity(), null);
                 }
                 else if (typeof(ISphereShape).IsAssignableFrom(gs.GetType()))
                 {

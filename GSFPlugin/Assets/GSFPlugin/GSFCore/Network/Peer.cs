@@ -13,30 +13,13 @@ namespace GameSystem.GameCore.Network
         Unreliable = 0
     }
 
-    public abstract class Peer
+    public interface IPeer
     {
-        public virtual int Id { get; protected set; }
-        public virtual bool isConnecting { get; protected set; }
-
-        public OnReceiveHandler OnPeerReceiveEvent;
-
-        protected Queue<PacketEvent> events;
-
-
-        public Peer()
-        {
-            events = new Queue<PacketEvent>();
-        }
-
-        public abstract void Send(byte[] bytes, Reliability reliability);
-        
-        public virtual void Poll()
-        {
-            
-        }
-
-        public abstract void Disconnect();
+        int Id { get; }
+        void Send(byte[] bytes, Reliability reliability);
+        void Disconnect();
     }
 
-    public delegate void OnReceiveHandler(Peer peer, byte[] dgram, Reliability reliability);
+    public delegate void OnReceiveDgramHandler(IPeer peer, byte[] dgram, Reliability reliability);
+    public delegate void OnReceivePacketHandler(IPeer peer, object packet, Reliability reliability);
 }

@@ -741,7 +741,7 @@ GameObject:
   - component: {fileID: 1040370088}
   - component: {fileID: 1040370087}
   m_Layer: 0
-  m_Name: GSF Launcher
+  m_Name: ServerLauncher
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -760,9 +760,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   debugMode: 0
-  serverPort: 8888
-  connectKey: Test
-  maxPeers: 10
+  Port: 8888
+  ConnectKey: Test
+  MaxPeers: 10
 --- !u!4 &1040370088
 Transform:
   m_ObjectHideFlags: 0

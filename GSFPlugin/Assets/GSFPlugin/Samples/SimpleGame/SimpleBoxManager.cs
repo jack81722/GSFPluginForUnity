@@ -56,7 +56,7 @@ public class SimpleBoxManager : Component
         float second = (float)DeltaTime.TotalSeconds;
         box_go1.transform.position += char_com1.velocity * second;
         box_go2.transform.position += char_com2.velocity * second;
-
-        Broadcast(new float[][] { ToFloatArray(box_go1.transform.position), ToFloatArray(box_go2.transform.position) }, GameSystem.GameCore.Network.Reliability.Sequence);
+        float[][] positions = new float[][] { ToFloatArray(box_go1.transform.position), ToFloatArray(box_go2.transform.position) };
+        Broadcast(new object[] { 1, positions }, GameSystem.GameCore.Network.Reliability.Sequence);
     }
 }

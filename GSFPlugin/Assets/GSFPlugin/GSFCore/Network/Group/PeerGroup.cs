@@ -15,22 +15,20 @@ namespace GameSystem.GameCore.Network
         private static IdentityPool idPool = new IdentityPool();
         public int Id { get; private set; }
         protected ISerializer serializer;
-        protected Dictionary<int, Peer> peers;
+        protected Dictionary<int, IPeer> peers;
         private List<JoinGroupRequest> queueing;
 
         protected PacketEventPool eventPool;
         private bool isPolling;
         private bool isClosed = false;
 
-        public delegate void OnReceiveHandler(Peer peer, object obj, Reliability reliability);
-
-        public OnReceiveHandler OnGroupReceiveEvent;
+        public OnReceivePacketHandler OnGroupReceiveEvent;
 
         public PeerGroup(ISerializer serializer)
         {
             Id = idPool.NewID();
             this.serializer = serializer;
-            peers = new Dictionary<int, Peer>();
+            peers = new Dictionary<int, IPeer>();
             eventPool = new PacketEventPool();
             queueing = new List<JoinGroupRequest>();
         }
@@ -41,7 +39,7 @@ namespace GameSystem.GameCore.Network
             isPolling = true;
             for (int i = 0; i < events.Length; i++)
             {
-                Peer peer = events[i].GetPeer();
+                IPeer peer = events[i].GetPeer();
                 object data = events[i].GetData();
                 Reliability reliability = events[i].GetReliability();
                 OnGroupReceiveEvent.Invoke(peer, data, reliability);    // delegate method
@@ -69,7 +67,7 @@ namespace GameSystem.GameCore.Network
 
         public void Send(int peerID, object obj, Reliability reliability)
         {
-            if (peers.TryGetValue(peerID, out Peer peer))
+            if (peers.TryGetValue(peerID, out IPeer peer))
             {
                 byte[] bytes = serializer.Serialize(obj);
                 peer.Send(bytes, reliability);
@@ -83,14 +81,14 @@ namespace GameSystem.GameCore.Network
         }
         #endregion
 
-        public void AddEvent(Peer peer, object data, Reliability reliability)
+        public void AddEvent(IPeer peer, object data, Reliability reliability)
         {
             if(!isClosed)
                 eventPool.Enqueue(peer, data, reliability);
         }
 
         #region Join/Exit methods
-        public async Task<JoinGroupResponse> JoinAsync(Peer peer, object arg)
+        public async Task<JoinGroupResponse> JoinAsync(IPeer peer, object arg)
         {
             // check if group is closed
             if (isClosed)
@@ -112,7 +110,7 @@ namespace GameSystem.GameCore.Network
             return result;
         }
 
-        public async Task<bool> ExitAsync(Peer peer, object arg)
+        public async Task<bool> ExitAsync(IPeer peer, object arg)
         {
             return false;
         }
@@ -133,23 +131,23 @@ namespace GameSystem.GameCore.Network
         }
         #endregion
 
-        public Peer GetPeer(int peerID)
+        public IPeer GetPeer(int peerID)
         {
-            if (peers.TryGetValue(peerID, out Peer peer))
+            if (peers.TryGetValue(peerID, out IPeer peer))
             {
                 return peer;
             }
             throw new InvalidOperationException("Cannot find peer.");
         }
 
-        public bool TryGetPeer(int peerID, out Peer peer)
+        public bool TryGetPeer(int peerID, out IPeer peer)
         {
             return peers.TryGetValue(peerID, out peer);
         }
 
-        public List<Peer> GetPeerList()
+        public List<IPeer> GetPeerList()
         {
-            return new List<Peer>(peers.Values);
+            return new List<IPeer>(peers.Values);
         }
 
         
@@ -172,7 +170,6 @@ namespace GameSystem.GameCore.Network
                 queueing.Clear();
             }
             eventPool.Clear();
-            PeerGroupManager.UnregisterGroup(Id);
         }
 
     }
