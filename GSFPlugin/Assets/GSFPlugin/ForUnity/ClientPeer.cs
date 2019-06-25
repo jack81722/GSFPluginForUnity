@@ -36,6 +36,8 @@ namespace GameSystem.GameCore.Network
             UnityEngine.Debug.Log($"Connect to [{ipAddr}:{port}, \"{connectKey}\"]");
             peer = netManager.Connect(ipAddr, port, connectKey);
             peer.Tag = this;
+            
+            //UnityEngine.Debug.Log($"Connect result : {peer.ConnectionState}");
         }
 
         public abstract void OnReceivePacket(object packet, Reliability reliability);

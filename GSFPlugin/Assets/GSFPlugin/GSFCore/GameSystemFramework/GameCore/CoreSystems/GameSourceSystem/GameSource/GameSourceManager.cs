@@ -198,7 +198,6 @@ namespace GameSystem.GameCore
             
             for(int i = 0; i < visitors.Count; i++)
             {
-                //Log("Send to visitor count = " + GSAdapterList.Count);
                 visitors[i].GetGSList(GSAdapterList.ToList());
             }
         }
@@ -356,13 +355,18 @@ namespace GameSystem.GameCore
 
         public JoinGroupRequest[] GetJoinRequests()
         {
-            return game.GetJoinPeerList().ToArray();
+            return game.GetJoinRequestList().ToArray();
         }
         #endregion
 
         public int GetGameID()
         {
             return game.GetGameID();
+        }
+
+        public void CloseGame()
+        {
+            game.Close();
         }
     }
 }

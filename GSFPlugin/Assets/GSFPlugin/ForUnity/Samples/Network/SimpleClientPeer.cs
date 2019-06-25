@@ -6,10 +6,12 @@ using System.Collections.Generic;
 public class SimpleClientPeer : ClientPeer
 {
     private Dictionary<int, List<IPacketReceiver>> receiverDict;
+    private Dictionary<int, Action<object>> actionDict;
 
     public SimpleClientPeer(ISerializer serializer) : base(serializer)
     {
         receiverDict = new Dictionary<int, List<IPacketReceiver>>();
+        actionDict = new Dictionary<int, Action<object>>();
     }
 
     public void AddReceiver(IPacketReceiver receiver)
@@ -26,6 +28,26 @@ public class SimpleClientPeer : ClientPeer
             receivers.Remove(receiver);
     }
 
+    public void AddAction(int code, Action<object> action)
+    {
+        if(actionDict.TryGetValue(code, out Action<object> act))
+        {
+            act += action;
+        }
+        else
+        {
+            actionDict.Add(code, action);
+        }
+    }
+
+    public void RemoveAction(int code, Action<object> action)
+    {
+        if (actionDict.TryGetValue(code, out Action<object> act))
+        {
+            act -= action;
+        }
+    }
+
     public override void OnReceivePacket(object packet, Reliability reliability)
     {
         object[] packetData = (object[])packet;
@@ -33,6 +55,10 @@ public class SimpleClientPeer : ClientPeer
         if (receiverDict.TryGetValue(code, out List<IPacketReceiver> receivers))
         {
             receivers.ForEach(receiver => receiver.Receive(packetData[1]));
+        }
+        if (actionDict.TryGetValue(code, out Action<object> action))
+        {
+            action.Invoke(packetData[1]);
         }
     }
 

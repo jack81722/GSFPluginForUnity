@@ -25,6 +25,7 @@ public class ClientPeerLauncher : MonoBehaviour
             ((SimpleClientPeer)peer).AddReceiver(receiver);
             Debug.Log($"Add receiver : {receiver}");
         }
+        ((SimpleClientPeer)peer).AddAction(-1, OnReceiveMessage);
     }
 
     public void Connect(string ip, int port, string key)
@@ -44,12 +45,19 @@ public class ClientPeerLauncher : MonoBehaviour
 
     public void ClickToStartGame()
     {
+        Debug.Log("Send start game.");
         peer.Send(new object[] { 1, "Start game." }, Reliability.ReliableOrder);
     }
 
     public void ClickToSayHello()
     {
         peer.Send(new object[] { -1, "Hello" }, Reliability.ReliableOrder);
+    }
+
+    public void OnReceiveMessage(object obj)
+    {
+        string msg = (string)obj;
+        Debug.Log($"Server said : \"{msg}\"");
     }
 
     private void Update()

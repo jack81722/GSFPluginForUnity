@@ -6,15 +6,7 @@ namespace GameSystem.GameCore.Network
 {
     [Serializable]
     public class JoinGroupResponse
-    {
-        [Serializable]
-        public enum ResultType
-        {
-            Accepted,
-            Rejected,
-            HasJoined,
-            Cancelled
-        }
+    {   
         public int groupId;
         public ResultType type;
         public string message;
@@ -40,6 +32,17 @@ namespace GameSystem.GameCore.Network
             if (message != null && message.Length > 0)
                 return string.Format("Join group[{0}] result : {1}, {2}", groupId, type, message);
             return string.Format("Join group[{0}] result : {1}", groupId, type);
+        }
+
+        [Serializable]
+        public enum ResultType
+        {
+            Accepted,
+            Rejected,
+            HasJoined,
+            InQueue,
+            Handling,
+            Cancelled
         }
     }
 }

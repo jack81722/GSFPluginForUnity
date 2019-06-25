@@ -116,15 +116,12 @@ namespace GameSystem.GameCore.Network
             Task.Run(() => group.JoinAsync(newPeer, null));
         }
 
-        private JoinGroupResponse Group_OnPeerJoinRequest(JoinGroupRequest request)
+        private void Group_OnPeerJoinRequest(JoinGroupRequest request)
         {
-            JoinGroupResponse response;
             if (OnPeerConnect(request.Peer))
-                response = new JoinGroupResponse(group.Id, JoinGroupResponse.ResultType.Accepted, "");
+                request.Accept(null);
             else
-                response = new JoinGroupResponse(group.Id, JoinGroupResponse.ResultType.Rejected, "");
-            Debug.Log($"Peer[{request.Peer.Id}] is {response.type}");
-            return response;
+                request.Reject("", null);
         }
 
         private void HandleGroupJoinReqeust()
@@ -159,13 +156,21 @@ namespace GameSystem.GameCore.Network
             return group.TryGetPeer(peerId, out peer);
         }
 
+        protected virtual void OnServerClose()
+        {
+
+        }
+
         public void Close()
         {
             Running = false;
-            receiveTcs.Cancel();
-            receiveTask.Wait();
-            group.Close();
-            netManager.DisconnectAll();
+            Debug.Log("User-defined logic is closing ...");
+            OnServerClose();            // close all user-defined logic
+            Debug.Log("User-defined logic is closed.");
+            receiveTcs.Cancel();        // stop receiving
+            receiveTask.Wait();         // wait receiving task stop
+            group.Close();              // close default group
+            netManager.DisconnectAll(); 
             Debug.Log($"Server receive task : {receiveTask.Status}");
         }
     }

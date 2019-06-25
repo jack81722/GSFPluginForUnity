@@ -9,8 +9,8 @@ using UnityEngine;
 public class SimpleServer : Server
 {
     IDebugger debugger;
-    Dictionary<int, Game> games;
-    Dictionary<int, PeerGroup> groups;
+    private Dictionary<int, Game> games;
+    private Dictionary<int, PeerGroup> groups;
 
     public SimpleServer(ISerializer serializer) : base(serializer)
     {
@@ -25,8 +25,8 @@ public class SimpleServer : Server
         switch ((int)packet[0])
         {
             case -1:
-                Debug.Log(packet[1]);
-                peer.Send(serializer.Serialize("123"), Reliability.ReliableOrder);
+                Debug.Log($"Client said : \"{packet[1]}\"");
+                peer.Send(serializer.Serialize(new object[] { -1, "Hi" }), Reliability.ReliableOrder);
                 break;
             case 0:
                 JoinGame(peer, packet[1]);
@@ -41,6 +41,7 @@ public class SimpleServer : Server
     {
         if (games.Count <= 0)
         {
+            // if no valid game existed, then create new game
             Game game = new Game(new BulletEngine.BulletPhysicEngine(debugger), debugger);
             Task.Run(game.Initialize);
             games.Add(game.Id, game);
@@ -60,6 +61,7 @@ public class SimpleServer : Server
                 break;
             }
         }
+        
     }
 
     private void StartGame()
@@ -68,5 +70,17 @@ public class SimpleServer : Server
         {
             g.Start();
         }
+    }
+
+    protected override void OnServerClose()
+    {
+        List<Task> closingTasks = new List<Task>();
+        foreach(var g in games.Values)
+        {
+            g.Close();
+        }
+        Task.WaitAll(closingTasks.ToArray());
+        games.Clear();
+        groups.Clear();
     }
 }

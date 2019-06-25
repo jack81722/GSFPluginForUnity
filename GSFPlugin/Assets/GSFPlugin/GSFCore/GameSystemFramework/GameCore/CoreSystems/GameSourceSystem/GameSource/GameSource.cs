@@ -123,6 +123,11 @@ namespace GameSystem.GameCore
             return Manager.GetGameID();
         }
 
+        public void CloseGame()
+        {
+            Manager.CloseGame();
+        }
+
         #region Log methods
         public void Log(object obj)
         {

@@ -759,10 +759,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08a64c7a7c11bad459d83b2e52f35740, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugMode: 0
+  StartOnAwake: 1
   Port: 8888
   ConnectKey: Test
-  MaxPeers: 10
+  MaxPeers: 100
 --- !u!4 &1040370088
 Transform:
   m_ObjectHideFlags: 0

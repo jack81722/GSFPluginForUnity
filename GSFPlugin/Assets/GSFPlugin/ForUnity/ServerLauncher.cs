@@ -7,10 +7,7 @@ using System.Threading.Tasks;
 
 public class ServerLauncher : UnityEngine.MonoBehaviour
 {
-    /// <summary>
-    /// Boolean of turn On/Off debug mode
-    /// </summary>
-    public bool debugMode = true;
+    public bool StartOnAwake = true;
 
     private IDebugger debugger;
 
@@ -21,15 +18,14 @@ public class ServerLauncher : UnityEngine.MonoBehaviour
     private Server server;
 
     public void Awake()
-    {   
-        debugger = new UnityDebugger();
-        server = new SimpleServer(new FormmaterSerializer());
-        DontDestroyOnLoad(gameObject);
-    }
-
-    private void Start()
     {
-        Launch();
+        if (StartOnAwake)
+        {
+            debugger = new UnityDebugger();
+            server = new SimpleServer(new FormmaterSerializer());
+            Launch();
+        }
+        DontDestroyOnLoad(gameObject);
     }
 
     public void Launch()
@@ -42,7 +38,8 @@ public class ServerLauncher : UnityEngine.MonoBehaviour
 
     private void Stop()
     {
-        server.Close();
+        if(server != null)
+            server.Close();
     }
 
     private void OnDestroy()

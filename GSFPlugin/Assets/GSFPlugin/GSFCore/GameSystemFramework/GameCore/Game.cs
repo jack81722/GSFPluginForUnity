@@ -28,6 +28,8 @@ namespace GameSystem.GameCore
         public int MaxPlayerCount = 20;
         public int PlayerCount { get; }
 
+        private bool isClosed;
+
         public Game(PhysicEngineProxy physicEngine, IDebugger debugger)
         {
             Id = idPool.NewID();
@@ -53,21 +55,26 @@ namespace GameSystem.GameCore
         }
 
         public void Start()
-        {
-            UnityEngine.Debug.Log("Start Game");
+        {   
             loopTask = Task.Run(GameLoop);
-        }
-
-        public void Stop()
-        {
-            running = false;
+            UnityEngine.Debug.Log($"Start Game[{Id}]");
         }
 
         public void Close()
         {
-            running = false;
-            if(loopTask != null)
-                loopTask.Wait();
+            if (isClosed)
+                return;
+            if (!running)
+                CloseSafely();
+            running = false;    // set loop stopped
+            isClosed = true;
+        }
+
+        private void CloseSafely()
+        {
+            // let all peers in group exit
+            peerGroup.ExitAll("Game is closed.", null);
+            Debugger.Log($"Close game[{Id}].");
         }
 
         private void GameLoop()
@@ -91,12 +98,16 @@ namespace GameSystem.GameCore
                 }
                 // correct time into fps
                 float TargetSecond = 1f / TargetFPS;
-                if (deltaTime.TotalSeconds < TargetSecond)
-                {
-                    Thread.Sleep((int)(TargetSecond - deltaTime.TotalSeconds) * 1000);
-                }
+                int delayTime = (int)(TargetSecond - deltaTime.TotalSeconds) * 1000;
+                // force release thread 5 ms
+                if (delayTime > 5)
+                    Thread.Sleep(delayTime);
+                else
+                    Thread.Sleep(5);
                 last_time = curr_time;
             }
+            if (isClosed)
+                Task.Run(CloseSafely);
         }
 
         #region Join request methods
@@ -111,7 +122,7 @@ namespace GameSystem.GameCore
             return reqs;
         }
 
-        public List<JoinGroupRequest> GetJoinPeerList()
+        public List<JoinGroupRequest> GetJoinRequestList()
         {
             List<JoinGroupRequest> reqs = new List<JoinGroupRequest>();
             while (peerGroup.GetQueueingCount() > 0)
@@ -121,7 +132,8 @@ namespace GameSystem.GameCore
 
         public QueueStatus GetQueueStatus()
         {
-            if (peerGroup.GetPeerList().Count + GetJoinPeerList().Count >= MaxPlayerCount)
+            // connected_peers + handling_peers + queueing_peers
+            if (peerGroup.GetPeerList().Count + peerGroup.GetHandlingCount() + peerGroup.GetQueueingCount() >= MaxPlayerCount)
                 return QueueStatus.Crowded;
             else if (peerGroup.GetPeerList().Count >= MaxPlayerCount)
                 return QueueStatus.Full;

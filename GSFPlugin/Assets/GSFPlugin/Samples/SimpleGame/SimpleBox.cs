@@ -30,6 +30,14 @@ public class SimpleBox : Component
         {
             Destroy(gameObject);
         }
+        // end game ...
+        EndGame();
+    }
+
+    private void EndGame()
+    {
+        Broadcast(new object[] { -1, "Game is end." }, Reliability.ReliableOrder);
+        CloseGame();
     }
 
     public override void OnDestroy()
