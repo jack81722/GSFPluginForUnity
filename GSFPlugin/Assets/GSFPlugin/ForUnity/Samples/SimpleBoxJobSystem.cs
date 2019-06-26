@@ -5,19 +5,17 @@ using UnityEngine;
 
 public class SimpleBoxJobSystem : MonoBehaviour, IPacketReceiver
 {
-    public GameObjectPool pool;
+    public ClientPeerLauncher peerLauncher;
+    private ClientPeer peer;
 
-    public SimpleBoxInfo prefab;
-
-    public GameObject box1, box2;
+    public ClientSimpleBoxPool pool;
+    public ClientSimpleBox prefab;
 
     private void Start()
     {
-        pool = new GameObjectPool(prefab.gameObject);
+        peer = peerLauncher.peer;
+        pool = new ClientSimpleBoxPool(prefab);
         pool.Supple(10);
-
-        box1 = pool.Get();
-        box2 = pool.Get();
     }
 
     FormmaterSerializer serializer = new FormmaterSerializer();
@@ -31,14 +29,85 @@ public class SimpleBoxJobSystem : MonoBehaviour, IPacketReceiver
 
     public void Receive(object packet)
     {
-        float[][] floats = (float[][])packet;
-        box1.transform.localPosition = ToVector3(floats[0]);
-        box2.transform.localPosition = ToVector3(floats[1]);
+        pool.Update((SimpleBoxManager.BoxInfo[])packet);
+    }
+
+    private void Update()
+    {
+        if (peer != null && peer.isConnecting)
+        {
+            float horizon = Input.GetAxis("Horizontal");
+            float vertical = Input.GetAxis("Vertical");
+            peer.Send(new object[] { 2, new float[] { horizon, 0, vertical } }, Reliability.Unreliable);
+        }
     }
 }
 
-public interface IPacketReceiver
+public class ClientSimpleBoxPool : TrackableObjectPool<ClientSimpleBox>
 {
-    int Code { get; }
-    void Receive(object packet);
+    private ClientSimpleBox prefab;
+
+    public ClientSimpleBoxPool(ClientSimpleBox prefab)
+    {
+        this.prefab = prefab;
+    }
+
+    protected override int Comparison(ClientSimpleBox x, ClientSimpleBox y)
+    {
+        return x.id.CompareTo(y.id);
+    }
+
+    protected override void SuppleHandler(ClientSimpleBox item)
+    {
+        item.gameObject.SetActive(false);
+    }
+
+    protected override void GetHandler(ClientSimpleBox item)
+    {
+        item.gameObject.SetActive(true);
+    }
+
+    protected override void RecycleHandler(ClientSimpleBox item)
+    {
+        item.gameObject.SetActive(false);
+    }
+
+    protected override ClientSimpleBox Create()
+    {
+        return GameObject.Instantiate<ClientSimpleBox>(prefab);
+    }
+
+    protected override void Destroy(ClientSimpleBox item)
+    {
+        GameObject.Destroy(item);
+    }
+
+    public void Update(SimpleBoxManager.BoxInfo[] packet)
+    {
+        tracker.Diff<SimpleBoxManager.BoxInfo>(packet, 
+            out List<SimpleBoxManager.BoxInfo> added, 
+            out List<ClientSimpleBox> removed, 
+            out List<ClientSimpleBox> existed, 
+            out List<SimpleBoxManager.BoxInfo> updated, 
+            Compare);
+        for(int i = 0; i < added.Count; i++)
+        {
+            ClientSimpleBox box = Get();
+            box.id = added[i].boxId;
+            box.transform.position = new Vector3(added[i].boxPos[0], added[i].boxPos[1], added[i].boxPos[2]);
+        }
+        Recycle(removed);
+        for(int i = 0; i < existed.Count; i++)
+        {
+            existed[i].transform.position = new Vector3(updated[i].boxPos[0], updated[i].boxPos[1], updated[i].boxPos[2]);
+        }
+    }
+
+    public int Compare(ClientSimpleBox box, SimpleBoxManager.BoxInfo info)
+    {   
+        int result = info.boxId.CompareTo(box.id);
+        return result;
+    }
 }
+
+

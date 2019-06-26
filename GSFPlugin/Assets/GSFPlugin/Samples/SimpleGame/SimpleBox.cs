@@ -4,19 +4,19 @@ using GameSystem.GameCore.Network;
 using GameSystem.GameCore.SerializableMath;
 
 [Packable(0)]
-public class SimpleBox : Component
+public class ServerSimpleBox : Component
 {
-    private static int water_id;
     [PacketMember(0)]
-    public int id { get; private set; }
-    public Vector3 velocity;
+    public int id;
+    public float speed;
+    public Vector3 direction;
+    public Vector3 velocity { get { return speed * direction; } }
     [PacketMember(1)]
     public Vector3 pos;
     public BoxCollider collider;
 
     public override void Start()
     {
-        id = water_id++;
         pos = transform.position;
         collider = GetComponent<BoxCollider>();
         collider.OnCollisionEvent += Collider_OnCollisionEvent;
@@ -26,12 +26,12 @@ public class SimpleBox : Component
     {
         // display what hit what
         Log($"{self.Name} Hit {other.Name}");
-        if (id < other.GetComponent<SimpleBox>().id)
+        if (id < other.GetComponent<ServerSimpleBox>().id)
         {
             Destroy(gameObject);
         }
         // end game ...
-        EndGame();
+        //EndGame();
     }
 
     private void EndGame()

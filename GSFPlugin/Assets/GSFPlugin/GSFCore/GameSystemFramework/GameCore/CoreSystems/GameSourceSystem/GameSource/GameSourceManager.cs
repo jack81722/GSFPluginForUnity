@@ -45,6 +45,7 @@ namespace GameSystem.GameCore
 
         private IDebugger Debugger;
         private Game game;
+        public Game.ReceiveGamePacketHandler OnReceiveGamePacket { get { return game.OnReceiveGamePacket; } set { game.OnReceiveGamePacket = value; } }
 
         #region Constructor
         public GameSourceManager(Game game, PhysicEngineProxy physicEngine, IDebugger debugger)

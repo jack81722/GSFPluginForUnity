@@ -10,7 +10,7 @@ using UnityEngine.Events;
 
 public class ClientPeerLauncher : MonoBehaviour
 {
-    private ClientPeer peer;
+    public ClientPeer peer { get; private set; }
 
     public string serverIp = "127.0.0.1";
     public int serverPort = 8888;

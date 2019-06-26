@@ -34,6 +34,9 @@ public class SimpleServer : Server
             case 1:
                 StartGame();
                 break;
+            case 2:
+                ReceiveGamePacket(peer, packet[1], reliability);
+                break;
         }
     }
 
@@ -69,6 +72,14 @@ public class SimpleServer : Server
         foreach (var g in games.Values)
         {
             g.Start();
+        }
+    }
+
+    private void ReceiveGamePacket(IPeer peer, object packet, Reliability reliability)
+    {
+        foreach(var g in games.Values)
+        {
+            g.peerGroup.AddEvent(peer, packet, reliability);
         }
     }
 

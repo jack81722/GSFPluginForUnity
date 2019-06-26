@@ -28,7 +28,13 @@ namespace GameSystem.GameCore
         public int MaxPlayerCount = 20;
         public int PlayerCount { get; }
 
+        /// <summary>
+        /// Boolean of game is cloesed
+        /// </summary>
         private bool isClosed;
+
+        public delegate void ReceiveGamePacketHandler(IPeer peer, object packet);
+        public ReceiveGamePacketHandler OnReceiveGamePacket;
 
         public Game(PhysicEngineProxy physicEngine, IDebugger debugger)
         {
@@ -55,7 +61,8 @@ namespace GameSystem.GameCore
         }
 
         public void Start()
-        {   
+        {
+            peerGroup.OnGroupReceiveEvent += ReceiveGamePacket;
             loopTask = Task.Run(GameLoop);
             UnityEngine.Debug.Log($"Start Game[{Id}]");
         }
@@ -150,6 +157,11 @@ namespace GameSystem.GameCore
         public void Broadcast(object obj, Reliability reliability)
         {
             Task task = peerGroup.BroadcastAsync(obj, reliability);
+        }
+
+        private void ReceiveGamePacket(IPeer peer, object obj, Reliability reliability)
+        {
+            OnReceiveGamePacket.Invoke(peer, obj);
         }
     }
 }

@@ -65,6 +65,8 @@ namespace GameSystem.GameCore
         /// </summary>
         public TimeSpan DeltaTime { get { return Manager.DeltaTime; } }
 
+        public Game.ReceiveGamePacketHandler OnReceiveGamePacket { get { return Manager.OnReceiveGamePacket; } set { Manager.OnReceiveGamePacket = value; } }
+
         #region Constructor
         public GameSource()
         {

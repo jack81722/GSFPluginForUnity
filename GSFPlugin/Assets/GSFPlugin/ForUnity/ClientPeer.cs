@@ -13,6 +13,13 @@ namespace GameSystem.GameCore.Network
         protected ISerializer serializer;
 
         public int Id { get { return peer.Id; } }
+        public bool isConnecting {
+            get
+            {
+                return peer != null && peer.ConnectionState == ConnectionState.Connected;
+            }
+        }
+        public object UserObject { get; set; }
 
         public ClientPeer(ISerializer serializer) : base()
         {

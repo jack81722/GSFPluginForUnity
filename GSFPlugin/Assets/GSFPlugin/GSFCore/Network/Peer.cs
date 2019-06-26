@@ -16,6 +16,7 @@ namespace GameSystem.GameCore.Network
     public interface IPeer
     {
         int Id { get; }
+        object UserObject { get; set; }
         void Send(byte[] bytes, Reliability reliability);
         void Disconnect();
     }

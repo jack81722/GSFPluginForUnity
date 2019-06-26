@@ -1279,9 +1279,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c09ebc14530985d45951de65eba9ccf9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  peerLauncher: {fileID: 1388622764}
   prefab: {fileID: 4247746955643984624, guid: 1fde85d81ebe8b0469d3ae737d0dde40, type: 3}
-  box1: {fileID: 0}
-  box2: {fileID: 0}
 --- !u!1 &1426648788
 GameObject:
   m_ObjectHideFlags: 0

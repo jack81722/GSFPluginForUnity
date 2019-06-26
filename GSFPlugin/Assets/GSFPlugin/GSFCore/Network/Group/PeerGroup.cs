@@ -181,23 +181,45 @@ namespace GameSystem.GameCore.Network
         }
         #endregion
 
+        /// <summary>
+        /// Get peer in group by peer identity
+        /// </summary>
+        /// <exception cref="Peer not found in group."></exception>
         public IPeer GetPeer(int peerID)
         {
             if (peers.TryGetValue(peerID, out IPeer peer))
             {
                 return peer;
             }
-            throw new InvalidOperationException("Cannot find peer.");
+            throw new InvalidOperationException("Peer not found in group.");
         }
 
+        /// <summary>
+        /// Try to get peer in group by peer identity
+        /// </summary>
         public bool TryGetPeer(int peerID, out IPeer peer)
         {
             return peers.TryGetValue(peerID, out peer);
         }
 
+        /// <summary>
+        /// Get peer list in group
+        /// </summary>
         public List<IPeer> GetPeerList()
         {
             return new List<IPeer>(peers.Values);
+        }
+
+        /// <summary>
+        /// Find all peers matched by predicate
+        /// </summary>
+        public List<IPeer> FindAllPeers(Predicate<IPeer> predicate)
+        {
+            lock (peers)
+            {
+                List<IPeer> found = new List<IPeer>(peers.Values);
+                return found.FindAll(predicate);
+            }
         }
 
         public void Close()
@@ -212,7 +234,6 @@ namespace GameSystem.GameCore.Network
             ExitAll("Group is closed.", null);
             eventPool.Clear();
         }
-
     }
 
     public class IdentityPool

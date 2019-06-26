@@ -67,9 +67,10 @@
     <Compile Include="Assets\GSFPlugin\ForUnity\ClientPeer.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\ClientPeerLauncher.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\GameObjectPool.cs" />
+    <Compile Include="Assets\GSFPlugin\ForUnity\Samples\ClientSimpleBox.cs" />
+    <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\IPacketReceiver.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\SimpleClientPeer.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\SimpleServer.cs" />
-    <Compile Include="Assets\GSFPlugin\ForUnity\Samples\SimpleBoxInfo.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\SimpleBoxJobSystem.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Server.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\ServerLauncher.cs" />

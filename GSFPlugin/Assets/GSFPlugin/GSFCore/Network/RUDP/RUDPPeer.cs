@@ -16,6 +16,8 @@ namespace GameSystem.GameCore.Network
 
         public int Id { get { return peer.Id; } }
 
+        public object UserObject { get; set; }
+
         public void Disconnect()
         {   
             peer.Disconnect();

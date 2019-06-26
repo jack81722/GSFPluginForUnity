@@ -21,9 +21,10 @@ namespace GameSystem.GameCore.Network
             tcs = new TaskCompletionSource<JoinGroupResponse>();
         }
 
-        public void Accept(object obj)
+        public IPeer Accept(object obj)
         {
             tcs.SetResult(new JoinGroupResponse(GroupId, JoinGroupResponse.ResultType.Accepted, "", obj));
+            return Peer;
         }
 
         public void Reject(string msg = "", object obj = null)
