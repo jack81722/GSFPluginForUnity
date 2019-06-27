@@ -12,14 +12,16 @@ namespace GameSystem.GameCore.Network
         protected NetPeer peer;
         protected ISerializer serializer;
 
+        #region IPeer properties
         public int Id { get { return peer.Id; } }
-        public bool isConnecting {
+        public bool isConnected {
             get
             {
                 return peer != null && peer.ConnectionState == ConnectionState.Connected;
             }
         }
         public object UserObject { get; set; }
+        #endregion
 
         public ClientPeer(ISerializer serializer) : base()
         {
@@ -38,6 +40,9 @@ namespace GameSystem.GameCore.Network
             OnReceivePacket(packet, (Reliability)deliveryMethod);
         }
 
+
+        protected abstract void OnReceivePacket(object packet, Reliability reliability);
+
         public void Connect(string ipAddr, int port, string connectKey)
         {
             UnityEngine.Debug.Log($"Connect to [{ipAddr}:{port}, \"{connectKey}\"]");
@@ -46,8 +51,6 @@ namespace GameSystem.GameCore.Network
             
             //UnityEngine.Debug.Log($"Connect result : {peer.ConnectionState}");
         }
-
-        public abstract void OnReceivePacket(object packet, Reliability reliability);
 
         public void Send(object packet, Reliability reliability)
         {

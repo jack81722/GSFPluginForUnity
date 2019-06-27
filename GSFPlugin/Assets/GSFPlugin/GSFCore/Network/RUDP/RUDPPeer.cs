@@ -16,8 +16,10 @@ namespace GameSystem.GameCore.Network
 
         public int Id { get { return peer.Id; } }
 
-        public object UserObject { get; set; }
+        public bool isConnected { get { return peer.ConnectionState == ConnectionState.Connected; } }
 
+        public object UserObject { get; set; }
+        
         public void Disconnect()
         {   
             peer.Disconnect();

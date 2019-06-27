@@ -16,9 +16,14 @@ public class ClientPeerLauncher : MonoBehaviour
     public int serverPort = 8888;
     public string connectKey = "Test";
 
-    private void Start()
+    private void Awake()
     {
+        // New client peer before start
         peer = new SimpleClientPeer(new FormmaterSerializer());
+    }
+
+    private void Start()
+    {   
         IEnumerable<IPacketReceiver> receivers = FindObjectsOfType<MonoBehaviour>().OfType<IPacketReceiver>();
         foreach(var receiver in receivers)
         {

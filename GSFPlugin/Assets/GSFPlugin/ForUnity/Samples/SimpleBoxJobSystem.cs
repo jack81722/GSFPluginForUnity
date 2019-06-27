@@ -34,7 +34,7 @@ public class SimpleBoxJobSystem : MonoBehaviour, IPacketReceiver
 
     private void Update()
     {
-        if (peer != null && peer.isConnecting)
+        if (peer != null && peer.isConnected)
         {
             float horizon = Input.GetAxis("Horizontal");
             float vertical = Input.GetAxis("Vertical");

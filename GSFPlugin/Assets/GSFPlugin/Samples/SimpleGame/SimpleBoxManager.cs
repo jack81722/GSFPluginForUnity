@@ -41,11 +41,15 @@ public class SimpleBoxManager : Component
     public void AcceptPlayer(JoinGroupRequest request)
     {
         IPeer peer = request.Accept(GetGameID());
-        GameObject go = Instantiate(prefab);
-        go.SetActive(true);
-        ServerSimpleBox component = go.GetComponent<ServerSimpleBox>();
-        component.id = peer.Id;
-        boxes.Add(component.id, component);
+        // check if peer is connected
+        if (peer.isConnected)
+        {
+            GameObject go = Instantiate(prefab);
+            go.SetActive(true);
+            ServerSimpleBox component = go.GetComponent<ServerSimpleBox>();
+            component.id = peer.Id;
+            boxes.Add(component.id, component);
+        }
     }
 
     public float[] ToFloatArray(Vector3 v)

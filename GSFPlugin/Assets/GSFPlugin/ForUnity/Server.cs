@@ -10,6 +10,9 @@ using UnityEngine;
 
 namespace GameSystem.GameCore.Network
 {
+    /// <summary>
+    /// Base server class using RUDP protocol
+    /// </summary>
     public abstract class Server
     {
         private EventBasedNetListener listener;
@@ -18,6 +21,7 @@ namespace GameSystem.GameCore.Network
         private Task receiveTask;
         private CancellationTokenSource receiveTcs;
 
+        #region Server properties
         /// <summary>
         /// Boolean of serverr is running
         /// </summary>
@@ -57,7 +61,11 @@ namespace GameSystem.GameCore.Network
                 connectKey = value;
             }
         }
+        #endregion
 
+        /// <summary>
+        /// Default group in server, it will service all peer
+        /// </summary>
         protected PeerGroup group;
         protected ISerializer serializer;
 
@@ -71,6 +79,7 @@ namespace GameSystem.GameCore.Network
             receiveTcs = new CancellationTokenSource();
         }
 
+        #region Protected user-defined events
         protected virtual bool OnPeerConnect(IPeer peer)
         {
             return true;
@@ -84,50 +93,15 @@ namespace GameSystem.GameCore.Network
 
         protected abstract void OnReceivePacket(IPeer peer, object packet, Reliability reliability);
 
-        public void Start(int port)
-        {
-            Running = true;
-            // initialize listener events
-            listener.ConnectionRequestEvent += Listener_ConnectionRequestEvent;
-            listener.PeerConnectedEvent += Listener_PeerConnectedEvent;
-            listener.NetworkReceiveEvent += Listener_NetworkReceiveEvent;
-            // start listen
-            Port = port;
-            netManager.Start(port);
-            // start receive loop
-            receiveTask = Task.Run(ReceiveLoop, receiveTcs.Token);
-            Debug.Log($"Start Server[Port:{port}]");
-        }
+        protected virtual void OnServerClose() { }
+        #endregion
 
-        private async Task ReceiveLoop()
-        {
-            while (!receiveTcs.IsCancellationRequested)
-            {
-                netManager.PollEvents();
-                HandleGroupJoinReqeust();
-                await Task.Delay(15);
-            }
-        }
-
+        #region Private listener events
         private void Listener_PeerConnectedEvent(NetPeer peer)
         {
             RUDPPeer newPeer = new RUDPPeer(peer);
             peer.Tag = newPeer;
             Task.Run(() => group.JoinAsync(newPeer, null));
-        }
-
-        private void Group_OnPeerJoinRequest(JoinGroupRequest request)
-        {
-            if (OnPeerConnect(request.Peer))
-                request.Accept(null);
-            else
-                request.Reject("", null);
-        }
-
-        private void HandleGroupJoinReqeust()
-        {
-            while (group.GetQueueingCount() > 0)
-                Group_OnPeerJoinRequest(group.DequeueJoinRequest());
         }
 
         private void Listener_NetworkReceiveEvent(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod)
@@ -145,6 +119,48 @@ namespace GameSystem.GameCore.Network
             else
                 request.Reject();
         }
+        #endregion
+
+        #region Server main logic
+        private async Task ReceiveLoop()
+        {
+            while (!receiveTcs.IsCancellationRequested)
+            {
+                netManager.PollEvents();
+                HandleGroupJoinReqeust();
+                await Task.Delay(15);
+            }
+        }
+
+        private void Group_OnPeerJoinRequest(JoinGroupRequest request)
+        {
+            if (OnPeerConnect(request.Peer))
+                request.Accept(null);
+            else
+                request.Reject("", null);
+        }
+
+        private void HandleGroupJoinReqeust()
+        {
+            while (group.GetQueueingCount() > 0)
+                Group_OnPeerJoinRequest(group.DequeueJoinRequest());
+        }
+        #endregion
+
+        public void Start(int port)
+        {
+            Running = true;
+            // initialize listener events
+            listener.ConnectionRequestEvent += Listener_ConnectionRequestEvent;
+            listener.PeerConnectedEvent += Listener_PeerConnectedEvent;
+            listener.NetworkReceiveEvent += Listener_NetworkReceiveEvent;
+            // start listen
+            Port = port;
+            netManager.Start(port);
+            // start receive loop
+            receiveTask = Task.Run(ReceiveLoop, receiveTcs.Token);
+            Debug.Log($"Start Server[Port:{port}]");
+        }
 
         public IPeer GetPeer(int peerId)
         {
@@ -154,11 +170,6 @@ namespace GameSystem.GameCore.Network
         public bool TryGetPeer(int peerId, out IPeer peer)
         {
             return group.TryGetPeer(peerId, out peer);
-        }
-
-        protected virtual void OnServerClose()
-        {
-
         }
 
         public void Close()

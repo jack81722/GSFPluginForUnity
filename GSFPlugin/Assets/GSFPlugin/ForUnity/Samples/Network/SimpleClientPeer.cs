@@ -48,7 +48,7 @@ public class SimpleClientPeer : ClientPeer
         }
     }
 
-    public override void OnReceivePacket(object packet, Reliability reliability)
+    protected override void OnReceivePacket(object packet, Reliability reliability)
     {
         object[] packetData = (object[])packet;
         int code = (int)packetData[0];
