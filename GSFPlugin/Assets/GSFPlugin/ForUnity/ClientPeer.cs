@@ -5,12 +5,26 @@ using System.Collections.Generic;
 
 namespace GameSystem.GameCore.Network
 {
-    public abstract class ClientPeer : IPeer
+    public class ClientPeer : IPeer
     {
         protected EventBasedNetListener listener;
         protected NetManager netManager;
         protected NetPeer peer;
         protected ISerializer serializer;
+
+        #region Peer information
+        public string DestinationIP
+        {
+            get { return peer.EndPoint.Address.ToString(); }
+        }
+        public int Port
+        {
+            get { return peer.EndPoint.Port; }
+        }
+        #endregion
+
+        public delegate void ClientReceiveHandler(object packet, Reliability reliability);
+        public ClientReceiveHandler OnClientReceivePacket;
 
         #region IPeer properties
         public int Id { get { return peer.Id; } }
@@ -40,16 +54,23 @@ namespace GameSystem.GameCore.Network
             OnReceivePacket(packet, (Reliability)deliveryMethod);
         }
 
-
-        protected abstract void OnReceivePacket(object packet, Reliability reliability);
+        protected virtual void OnReceivePacket(object packet, Reliability reliability)
+        {
+            try
+            {
+                OnClientReceivePacket.Invoke(packet, reliability);
+            }
+            catch
+            {
+                // log exception ...
+            }
+        }
 
         public void Connect(string ipAddr, int port, string connectKey)
         {
             UnityEngine.Debug.Log($"Connect to [{ipAddr}:{port}, \"{connectKey}\"]");
             peer = netManager.Connect(ipAddr, port, connectKey);
             peer.Tag = this;
-            
-            //UnityEngine.Debug.Log($"Connect result : {peer.ConnectionState}");
         }
 
         public void Send(object packet, Reliability reliability)

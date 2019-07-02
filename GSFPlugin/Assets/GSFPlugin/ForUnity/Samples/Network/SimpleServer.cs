@@ -16,72 +16,56 @@ public class SimpleServer : Server
     {
         debugger = new UnityDebugger();
         games = new Dictionary<int, Game>();
-        groups = new Dictionary<int, PeerGroup>() { { group.Id, group } };
+        groups = new Dictionary<int, PeerGroup>() { { group.GroupId, group } };
+    }
+
+    protected override void OnPeerJoinResponse(IPeer peer, JoinGroupResponse response)
+    {
+        //object[] packet = new object[] { SimpleGameMetrics.OperationCode.Group_JoinResponse, response };
+        GenericPacket packet = new GenericPacket();
+        packet.InstCode = SimpleGameMetrics.OperationCode.Group_JoinResponse;
+        packet.Data = response;
+        peer.Send(serializer.Serialize(packet), Reliability.ReliableOrder);
     }
 
     protected override void OnReceivePacket(IPeer peer, object obj, Reliability reliability)
     {
-        object[] packet = (object[])obj;
-        switch ((int)packet[0])
-        {
-            case -1:
-                Debug.Log($"Client said : \"{packet[1]}\"");
-                peer.Send(serializer.Serialize(new object[] { -1, "Hi" }), Reliability.ReliableOrder);
-                break;
-            case 0:
-                JoinGame(peer, packet[1]);
-                break;
-            case 1:
-                StartGame();
-                break;
-            case 2:
-                ReceiveGamePacket(peer, packet[1], reliability);
-                break;
-        }
-    }
-
-    private void JoinGame(IPeer peer, object arg)
-    {
-        if (games.Count <= 0)
-        {
-            // if no valid game existed, then create new game
-            Game game = new Game(new BulletEngine.BulletPhysicEngine(debugger), debugger);
-            Task.Run(game.Initialize);
-            games.Add(game.Id, game);
-        }
-        // search compatible game for player
-        foreach (var g in games.Values)
-        {
-            Debug.Log($"Game[{g.Id}] status : {g.GetQueueStatus()}");
-            if (g.GetQueueStatus() == QueueStatus.Smooth)
+        GenericPacket packet = obj as GenericPacket;
+        if(packet != null)
+        {  
+            if(groups.TryGetValue(packet.InstCode, out PeerGroup group))
             {
-                Task.Run(() => g.peerGroup.JoinAsync(peer, arg)).
-                    ContinueWith(
-                    (t) => {
-                        peer.Send(serializer.Serialize(new object[] { 0, t.Result }), Reliability.ReliableOrder);
-                        return t.Result;
-                    });
-                break;
+                group.AddEvent(peer, packet.Data, reliability);
             }
         }
-        
+        //object[] packet = (object[])obj;
+        //switch ((int)packet[0])
+        //{
+        //    case SimpleGameMetrics.SwitchCode.Lobby_Log:
+        //        Debug.Log($"Client said : \"{packet[1]}\"");
+        //        peer.Send(serializer.Serialize(new object[] { SimpleGameMetrics.OperationCode.Chat, "Hi" }), Reliability.ReliableOrder);
+        //        break;
+        //    case SimpleGameMetrics.SwitchCode.Lobby_JoinGame:
+        //        JoinGame(peer, packet[1]);
+        //        break;
+        //    case SimpleGameMetrics.SwitchCode.Lobby_StartGame:
+        //        StartGame();
+        //        break;
+        //    case SimpleGameMetrics.SwitchCode.Lobby_GameControl:
+        //        ReceiveGamePacket(peer, packet[1], reliability);
+        //        break;
+        //}
     }
 
-    private void StartGame()
+    public void AddGroup(PeerGroup group)
     {
-        foreach (var g in games.Values)
+        if (groups.ContainsKey(group.GroupId))
         {
-            g.Start();
+            groups.Add(group.GroupId, group);
         }
     }
 
-    private void ReceiveGamePacket(IPeer peer, object packet, Reliability reliability)
-    {
-        foreach(var g in games.Values)
-        {
-            g.peerGroup.AddEvent(peer, packet, reliability);
-        }
-    }
+
 
     protected override void OnServerClose()
     {

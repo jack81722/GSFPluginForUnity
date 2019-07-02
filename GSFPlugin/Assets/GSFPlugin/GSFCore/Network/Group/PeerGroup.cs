@@ -10,10 +10,11 @@ namespace GameSystem.GameCore.Network
     /// <summary>
     /// Group of stack packets and send 
     /// </summary>
-    public class PeerGroup
+    public class PeerGroup : IPeerGroup
     {
         private static IdentityPool idPool = new IdentityPool();
-        public int Id { get; private set; }
+        public int GroupId { get; private set; }
+        public virtual int OperationCode { get; set; }
         protected ISerializer serializer;
 
         /// <summary>
@@ -38,7 +39,7 @@ namespace GameSystem.GameCore.Network
 
         public PeerGroup(ISerializer serializer)
         {
-            Id = idPool.NewID();
+            GroupId = idPool.NewID();
             this.serializer = serializer;
             peers = new Dictionary<int, IPeer>();
             eventPool = new PacketEventPool();
@@ -105,22 +106,22 @@ namespace GameSystem.GameCore.Network
         {
             // check if group is closed
             if (isClosed)
-                return new JoinGroupResponse(Id, JoinGroupResponse.ResultType.Cancelled, string.Format("Group is closed."));
+                return new JoinGroupResponse(GroupId, OperationCode, JoinGroupResponse.ResultType.Cancelled, string.Format("Group is closed."));
 
             // check if peer has joined
             if (peers.ContainsKey(peer.Id))
-                return new JoinGroupResponse(Id, JoinGroupResponse.ResultType.HasJoined, string.Format("Has joined in group"));
+                return new JoinGroupResponse(GroupId, OperationCode, JoinGroupResponse.ResultType.HasJoined, string.Format("Has joined in group"));
 
-            // check if peer in queue
+            // check if peer is in queue
             if (queueing.Exists(req => req.Peer.Id == peer.Id))
-                return new JoinGroupResponse(Id, JoinGroupResponse.ResultType.InQueue, string.Format("Join request is in queue."));
+                return new JoinGroupResponse(GroupId, OperationCode, JoinGroupResponse.ResultType.InQueue, string.Format("Join request is in queue."));
 
-            // check if peer is handling
+            // check if peer is been handling
             if(handling.Exists(req => req.Peer.Id == peer.Id))
-                return new JoinGroupResponse(Id, JoinGroupResponse.ResultType.Handling, string.Format("Join request is handling."));
+                return new JoinGroupResponse(GroupId, OperationCode, JoinGroupResponse.ResultType.Handling, string.Format("Join request is handling."));
 
             // add request into queue and waiting result
-            JoinGroupRequest request = new JoinGroupRequest(Id, peer, arg);
+            JoinGroupRequest request = new JoinGroupRequest(GroupId, OperationCode, peer, arg);
             queueing.Add(request);
             JoinGroupResponse result = await request.Task;
             handling.Remove(request);       // remove request from handling (because finished)
@@ -133,7 +134,7 @@ namespace GameSystem.GameCore.Network
 
         public async Task<bool> ExitAsync(IPeer peer, object arg)
         {
-            ExitGroupRequest request = new ExitGroupRequest(Id, peer, arg);
+            ExitGroupRequest request = new ExitGroupRequest(GroupId, peer, arg);
             return false;
         }
 
@@ -177,7 +178,7 @@ namespace GameSystem.GameCore.Network
             // remove group from peer
             int inGroupCount = peers.Count;
             peers.Clear();
-            UnityEngine.Debug.Log($"Group[{Id}] exit all peers, queueing cancelled : {queueingCount}, handling cancelled : {handlingCount}, in group : {inGroupCount}");
+            UnityEngine.Debug.Log($"Group[{GroupId}] exit all peers, queueing cancelled : {queueingCount}, handling cancelled : {handlingCount}, in group : {inGroupCount}");
         }
         #endregion
 
@@ -236,41 +237,4 @@ namespace GameSystem.GameCore.Network
         }
     }
 
-    public class IdentityPool
-    {
-        private int serialId;
-        private Queue<int> idPool;
-
-        public IdentityPool()
-        {
-            serialId = 0;
-            idPool = new Queue<int>();
-        }
-
-        public int NewID()
-        {
-            lock (idPool)
-            {
-                if (idPool.Count > 0)
-                    return idPool.Dequeue();
-            }
-            return serialId++;
-        }
-
-        public void RecycleID(int id)
-        {
-            lock (idPool)
-            {
-                if (!idPool.Contains(id))
-                    idPool.Enqueue(id);
-            }
-        }
-    }
-
-    public enum QueueStatus
-    {
-        Smooth,     // means amount of queuing and in group are not over maximum
-        Crowded,    // means amount of queuing and in group are over maximum
-        Full        // means group is full
-    }
 }

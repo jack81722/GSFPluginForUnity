@@ -8,21 +8,22 @@ using System.Threading.Tasks;
 public class ServerLauncher : UnityEngine.MonoBehaviour
 {
     public bool StartOnAwake = true;
+    public bool StopOnDestory = true;
 
-    private IDebugger debugger;
+    private IDebugger debugger = new UnityDebugger();
 
     public int Port = 8888;
     public string ConnectKey = "Test";
     public int MaxPeers = 10;
 
     private Server server;
+    public bool isRunning { get { return server != null && server.isRunning; } }
 
     public void Awake()
     {
-        if (StartOnAwake)
+        if (StartOnAwake && !isRunning)
         {
-            debugger = new UnityDebugger();
-            server = new SimpleServer(new FormmaterSerializer());
+            ResetServer();
             Launch();
         }
         DontDestroyOnLoad(gameObject);
@@ -36,15 +37,24 @@ public class ServerLauncher : UnityEngine.MonoBehaviour
         server.Start(Port);
     }
 
-    private void Stop()
+    public void Stop()
     {
         if(server != null)
             server.Close();
     }
 
+    public void ResetServer()
+    {
+        server = new SimpleServer(new FormmaterSerializer());
+    }
+
     private void OnDestroy()
     {
-        Stop();
+        if (StopOnDestory && isRunning)
+        {
+            debugger.Log("Stop on destroy");
+            Stop();
+        }
     }
 
     private void Log(object obj)

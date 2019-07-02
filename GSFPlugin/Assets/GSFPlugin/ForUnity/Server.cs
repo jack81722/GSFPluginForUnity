@@ -17,6 +17,7 @@ namespace GameSystem.GameCore.Network
     {
         private EventBasedNetListener listener;
         private NetManager netManager;
+        public bool isRunning { get { return netManager != null && netManager.IsRunning; } }
 
         private Task receiveTask;
         private CancellationTokenSource receiveTcs;
@@ -99,9 +100,13 @@ namespace GameSystem.GameCore.Network
         #region Private listener events
         private void Listener_PeerConnectedEvent(NetPeer peer)
         {
-            RUDPPeer newPeer = new RUDPPeer(peer);
+            ServerPeer newPeer = new ServerPeer(peer);
             peer.Tag = newPeer;
-            Task.Run(() => group.JoinAsync(newPeer, null));
+            Task.Run(async () => 
+            {
+                var response = await group.JoinAsync(newPeer, null);
+                OnPeerJoinResponse(newPeer, response);
+            });
         }
 
         private void Listener_NetworkReceiveEvent(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod)
@@ -163,7 +168,7 @@ namespace GameSystem.GameCore.Network
         }
 
         public IPeer GetPeer(int peerId)
-        {
+        {   
             return group.GetPeer(peerId);
         }
 
@@ -178,11 +183,14 @@ namespace GameSystem.GameCore.Network
             Debug.Log("User-defined logic is closing ...");
             OnServerClose();            // close all user-defined logic
             Debug.Log("User-defined logic is closed.");
-            receiveTcs.Cancel();        // stop receiving
-            receiveTask.Wait();         // wait receiving task stop
+            if (receiveTask != null)
+            {
+                receiveTcs.Cancel();        // stop receiving
+                receiveTask.Wait();         // wait receiving task stop
+            }
             group.Close();              // close default group
-            netManager.DisconnectAll(); 
-            Debug.Log($"Server receive task : {receiveTask.Status}");
+            netManager.DisconnectAll();
+            netManager.Stop();
         }
     }
 }

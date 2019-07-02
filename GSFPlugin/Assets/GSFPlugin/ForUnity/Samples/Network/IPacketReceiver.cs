@@ -4,6 +4,15 @@ using UnityEngine;
 
 public interface IPacketReceiver
 {
-    int Code { get; }
+    int OperationCode { get; }
     void Receive(object packet);
+}
+
+[System.Serializable]
+public class GenericPacket
+{
+    public int InstCode;
+    public bool Req, Res;
+    public int Num;
+    public object Data;
 }

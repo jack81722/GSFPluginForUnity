@@ -43,6 +43,5 @@ namespace GameSystem.GameCore.Network
         void Disconnect();
     }
 
-    public delegate void OnReceiveDgramHandler(IPeer peer, byte[] dgram, Reliability reliability);
     public delegate void OnReceivePacketHandler(IPeer peer, object packet, Reliability reliability);
 }

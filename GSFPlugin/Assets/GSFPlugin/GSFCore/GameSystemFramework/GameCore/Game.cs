@@ -8,10 +8,12 @@ using System.Threading.Tasks;
 
 namespace GameSystem.GameCore
 {
-    public class Game
+    public class Game : IPeerGroup
     {
         private static IdentityPool idPool = new IdentityPool();
-        public int Id { get; private set; }
+        public int GameId { get; private set; }
+        public int GroupId { get { return peerGroup.GroupId; } }
+        public int OperationCode { get { return peerGroup.OperationCode; } }
         public Scene mainScene;
         SceneBuilder sceneBuilder;
 
@@ -38,7 +40,7 @@ namespace GameSystem.GameCore
 
         public Game(PhysicEngineProxy physicEngine, IDebugger debugger)
         {
-            Id = idPool.NewID();
+            GameId = idPool.NewID();
             Debugger = debugger;
             this.physicEngine = physicEngine;
             gameSourceManager = new GameSourceManager(this, physicEngine, debugger);
@@ -57,14 +59,14 @@ namespace GameSystem.GameCore
 
         public int GetGameID()
         {
-            return Id;
+            return GameId;
         }
 
         public void Start()
         {
             peerGroup.OnGroupReceiveEvent += ReceiveGamePacket;
             loopTask = Task.Run(GameLoop);
-            UnityEngine.Debug.Log($"Start Game[{Id}]");
+            UnityEngine.Debug.Log($"Start Game[{GameId}]");
         }
 
         public void Close()
@@ -81,7 +83,7 @@ namespace GameSystem.GameCore
         {
             // let all peers in group exit
             peerGroup.ExitAll("Game is closed.", null);
-            Debugger.Log($"Close game[{Id}].");
+            Debugger.Log($"Close game[{GameId}].");
         }
 
         private void GameLoop()
@@ -163,5 +165,39 @@ namespace GameSystem.GameCore
         {
             OnReceiveGamePacket.Invoke(peer, obj);
         }
+
+        #region IPeerGroup methods
+        public void AddEvent(IPeer peer, object data, Reliability reliability)
+        {
+            peerGroup.AddEvent(peer, data, reliability);
+        }
+
+        public Task<JoinGroupResponse> JoinAsync(IPeer peer, object arg)
+        {
+            return peerGroup.JoinAsync(peer, arg);
+        }
+
+        public IPeer GetPeer(int peerID)
+        {
+            return peerGroup.GetPeer(peerID);
+        }
+
+        public bool TryGetPeer(int peerID, out IPeer peer)
+        {
+            return peerGroup.TryGetPeer(peerID, out peer);
+        }
+
+        public List<IPeer> FindAllPeers(Predicate<IPeer> predicate)
+        {
+            return peerGroup.FindAllPeers(predicate);
+        }
+        #endregion
+    }
+
+    public enum QueueStatus
+    {
+        Smooth,     // means amount of queuing and in group are not over maximum
+        Crowded,    // means amount of queuing and in group are over maximum
+        Full        // means group is full
     }
 }

@@ -20,7 +20,7 @@ public class SimpleBoxJobSystem : MonoBehaviour, IPacketReceiver
 
     FormmaterSerializer serializer = new FormmaterSerializer();
 
-    public int Code { get { return 1; } }
+    public int OperationCode { get { return SimpleGameMetrics.OperationCode.Game; } }
 
     public Vector3 ToVector3(float[] floats)
     {
@@ -38,7 +38,10 @@ public class SimpleBoxJobSystem : MonoBehaviour, IPacketReceiver
         {
             float horizon = Input.GetAxis("Horizontal");
             float vertical = Input.GetAxis("Vertical");
-            peer.Send(new object[] { 2, new float[] { horizon, 0, vertical } }, Reliability.Unreliable);
+            //peerLauncher.Send(
+            //    SimpleGameMetrics.OperationCode.Game, 
+            //    new object[]{ SimpleGameMetrics.ClientGameSwitchCode.Control, new float[] { horizon, 0, vertical } }, 
+            //    Reliability.Unreliable);
         }
     }
 }

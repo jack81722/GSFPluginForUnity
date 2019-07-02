@@ -105,17 +105,17 @@ namespace GameSystem.GameCore
             return SID;
         }
 
-        public void Send(int peerID, object obj, Reliability reliability)
+        public void Network_Send(int peerID, object obj, Reliability reliability)
         {
             Manager.Send(peerID, obj, reliability);
         }
 
-        public void Broadcast(object obj, Reliability reliability)
+        public void Network_Broadcast(object obj, Reliability reliability)
         {
             Manager.Broadcast(obj, reliability);
         }
 
-        public JoinGroupRequest[] GetJoinRequests()
+        public JoinGroupRequest[] Network_GetJoinRequests()
         {
             return Manager.GetJoinRequests();
         }

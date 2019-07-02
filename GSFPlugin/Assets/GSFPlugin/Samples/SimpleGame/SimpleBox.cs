@@ -36,7 +36,7 @@ public class ServerSimpleBox : Component
 
     private void EndGame()
     {
-        Broadcast(new object[] { -1, "Game is end." }, Reliability.ReliableOrder);
+        Network_Broadcast(new object[] { -1, "Game is end." }, Reliability.ReliableOrder);
         CloseGame();
     }
 

@@ -17,7 +17,7 @@ public class SimpleBoxManager : Component
         prefab = CreatePrefab();
         boxes = new Dictionary<int, ServerSimpleBox>();
 
-        var joinReqs = GetJoinRequests();
+        var joinReqs = Network_GetJoinRequests();
         for(int i = 0; i < joinReqs.Length; i++)
         {
             AcceptPlayer(joinReqs[i]);
@@ -40,7 +40,7 @@ public class SimpleBoxManager : Component
 
     public void AcceptPlayer(JoinGroupRequest request)
     {
-        IPeer peer = request.Accept(GetGameID());
+        IPeer peer = request.Accept("SimpleGame");
         // check if peer is connected
         if (peer.isConnected)
         {
@@ -85,7 +85,11 @@ public class SimpleBoxManager : Component
             box.transform.position = pos;
         }
         
-        Broadcast(new object[] { 1, packet }, Reliability.Sequence);
+        Network_Broadcast(
+            new object[] {
+                SimpleGameMetrics.OperationCode.Game,
+                new object[] { SimpleGameMetrics.ServerGameSwitchCode.BoxInfo, packet } }, 
+            Reliability.Sequence);
     }
 
     [System.Serializable]

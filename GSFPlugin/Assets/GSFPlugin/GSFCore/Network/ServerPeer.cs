@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace GameSystem.GameCore.Network
 {
-    public class RUDPPeer : IPeer
+    public class ServerPeer : IPeer
     {
         private NetPeer peer;
 
-        public RUDPPeer(NetPeer peer)
+        public ServerPeer(NetPeer peer)
         {
             this.peer = peer;
         }
