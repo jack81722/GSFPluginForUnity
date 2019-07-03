@@ -9,12 +9,16 @@ using UnityEngine.UIElements;
 public class ServerLauncherEditor : Editor
 {
     private ServerLauncher launcher;
+    SerializedProperty startProp;
+    SerializedProperty stopProp;
     SerializedProperty portProp;
     SerializedProperty keyProp;
     SerializedProperty maxProp;
 
     public void OnEnable()
     {
+        startProp = serializedObject.FindProperty("StartOnAwake");
+        stopProp = serializedObject.FindProperty("StopOnDestroy");
         portProp = serializedObject.FindProperty("Port");
         keyProp = serializedObject.FindProperty("ConnectKey");
         maxProp = serializedObject.FindProperty("MaxPeers");
@@ -23,10 +27,14 @@ public class ServerLauncherEditor : Editor
 
     public override void OnInspectorGUI()
     {
+        serializedObject.Update();
+        EditorGUILayout.PropertyField(startProp);
+        EditorGUILayout.PropertyField(stopProp);
         bool isRunning = launcher != null ? launcher.isRunning : false;
+
         // lock input after server start
         if (!isRunning)
-        {
+        {   
             portProp.intValue = Mathf.Clamp(EditorGUILayout.IntField("Port", portProp.intValue), 0, ushort.MaxValue);
             keyProp.stringValue = EditorGUILayout.TextField("Connect Key", keyProp.stringValue);
             maxProp.intValue = Mathf.Clamp(EditorGUILayout.IntField("Max Peers", maxProp.intValue), 0, int.MaxValue);
@@ -47,7 +55,8 @@ public class ServerLauncherEditor : Editor
         {
             launcher.Stop();
         }
-        
-        SceneView.RepaintAll();
+
+        serializedObject.ApplyModifiedProperties();
+        //SceneView.RepaintAll();
     }
 }

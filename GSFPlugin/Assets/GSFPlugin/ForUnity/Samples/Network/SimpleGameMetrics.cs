@@ -6,11 +6,17 @@ public static class SimpleGameMetrics
 {
     public static class OperationCode
     {
-        public const int Group_JoinResponse = 0;
+        public const int Group = 0;
 
         public const int Lobby = 10;
 
         public const int Game = 20;
+    }
+
+    public static class GroupSwitchCode
+    {
+        public const int JoinReq = 0;
+        public const int JoinRes = 1;
     }
 
     public static class ClientLobbySwitchCode

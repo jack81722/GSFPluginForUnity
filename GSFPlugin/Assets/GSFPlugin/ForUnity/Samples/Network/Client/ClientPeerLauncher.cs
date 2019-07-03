@@ -16,7 +16,7 @@ public class ClientPeerLauncher : MonoBehaviour
 
     private Dictionary<int, List<IPacketReceiver>> receivers;
     private Dictionary<int, List<Action<object>>> actions;
-    private Dictionary<int, int> tokens;
+    private Dictionary<int, int> channels;
 
     private void Awake()
     {
@@ -24,12 +24,12 @@ public class ClientPeerLauncher : MonoBehaviour
         peer = new ClientPeer(new FormmaterSerializer());
         receivers = new Dictionary<int, List<IPacketReceiver>>();
         actions = new Dictionary<int, List<Action<object>>>();
-        tokens = new Dictionary<int, int>();
+        channels = new Dictionary<int, int>();
     }
 
     private void Start()
     {
-        AddAction(SimpleGameMetrics.OperationCode.Group_JoinResponse, ReceiveJoinGroupResponse);
+        AddAction(SimpleGameMetrics.OperationCode.Group, ReceiveJoinGroupResponse);
         SceneManager.sceneLoaded += SceneManager_sceneLoaded;
         RefreshReceivers();
     }
@@ -74,7 +74,7 @@ public class ClientPeerLauncher : MonoBehaviour
 
     public bool TryGetGroupId(int operationCode, out int groupId)
     {
-        return tokens.TryGetValue(operationCode, out groupId);
+        return channels.TryGetValue(operationCode, out groupId);
     }
 
     public void AddAction(int operationCode, Action<object> action)
@@ -131,14 +131,14 @@ public class ClientPeerLauncher : MonoBehaviour
 
     private void AddGroupToken(int operationCode, int groupId)
     {
-        if (tokens.TryGetValue(operationCode, out int gid))
+        if (channels.TryGetValue(operationCode, out int gid))
         {
             if (gid != groupId)
                 throw new InvalidOperationException("Same operation group joined.");
         }
         else
         {
-            tokens.Add(operationCode, groupId);
+            channels.Add(operationCode, groupId);
             Debug.Log($"add new token ({operationCode},{groupId})");
             
         }

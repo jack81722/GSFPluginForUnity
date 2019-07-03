@@ -22,6 +22,7 @@ public class ClientPeerLauncherEditor : Editor
 
     public override void OnInspectorGUI()
     {
+        serializedObject.Update();
         bool isConnected = peer != null ? peer.isConnected : false;
         // lock input after connected to server
         if (!isConnected)
@@ -37,6 +38,6 @@ public class ClientPeerLauncherEditor : Editor
             EditorGUILayout.TextField("Connect Key", keyProp.stringValue);
         }
         EditorGUILayout.Toggle("IsConnected", isConnected);
-        SceneView.RepaintAll();
+        serializedObject.ApplyModifiedProperties();
     }
 }

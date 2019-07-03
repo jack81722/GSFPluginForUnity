@@ -81,10 +81,14 @@ namespace GameSystem.GameCore.Network
         }
 
         #region Protected user-defined events
-        protected virtual bool OnPeerConnect(IPeer peer)
+        protected virtual void OnServerStarted() { }
+
+        protected virtual bool AuthenticatePeer(IPeer peer)
         {
             return true;
         }
+
+        protected virtual void OnPeerConnected(IPeer peer) { }
 
         protected virtual void OnPeerJoinResponse(IPeer peer, JoinGroupResponse response)
         {
@@ -139,8 +143,11 @@ namespace GameSystem.GameCore.Network
 
         private void Group_OnPeerJoinRequest(JoinGroupRequest request)
         {
-            if (OnPeerConnect(request.Peer))
+            if (AuthenticatePeer(request.Peer))
+            {
                 request.Accept(null);
+                OnPeerConnected(request.Peer);
+            }
             else
                 request.Reject("", null);
         }
@@ -165,6 +172,8 @@ namespace GameSystem.GameCore.Network
             // start receive loop
             receiveTask = Task.Run(ReceiveLoop, receiveTcs.Token);
             Debug.Log($"Start Server[Port:{port}]");
+            OnServerStarted();
+            
         }
 
         public IPeer GetPeer(int peerId)

@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 public class ServerLauncher : UnityEngine.MonoBehaviour
 {
     public bool StartOnAwake = true;
-    public bool StopOnDestory = true;
+    public bool StopOnDestroy = true;
 
     private IDebugger debugger = new UnityDebugger();
 
-    public int Port = 8888;
-    public string ConnectKey = "Test";
-    public int MaxPeers = 10;
+    public int Port;
+    public string ConnectKey;
+    public int MaxPeers;
 
     private Server server;
     public bool isRunning { get { return server != null && server.isRunning; } }
@@ -50,7 +50,7 @@ public class ServerLauncher : UnityEngine.MonoBehaviour
 
     private void OnDestroy()
     {
-        if (StopOnDestory && isRunning)
+        if (StopOnDestroy && isRunning)
         {
             debugger.Log("Stop on destroy");
             Stop();

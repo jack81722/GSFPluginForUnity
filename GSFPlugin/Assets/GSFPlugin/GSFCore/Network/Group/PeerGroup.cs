@@ -35,7 +35,12 @@ namespace GameSystem.GameCore.Network
         private bool isPolling;
         private bool isClosed = false;
 
+        public delegate void OnPeerJoinedHandler(IPeer peer);
+        public delegate void OnPeerExitedHandler(IPeer peer);
+
         public OnReceivePacketHandler OnGroupReceiveEvent;
+        public OnPeerJoinedHandler OnPeerJoinedEvent;
+        public OnPeerExitedHandler OnPeerExitedEvent;
 
         public PeerGroup(ISerializer serializer)
         {
@@ -128,13 +133,14 @@ namespace GameSystem.GameCore.Network
             if (result.type == JoinGroupResponse.ResultType.Accepted)
             {
                 lock (peers) peers.Add(peer.Id, peer);
+                OnPeerJoinedEvent.Invoke(peer);
             }
             return result;
         }
 
         public async Task<bool> ExitAsync(IPeer peer, object arg)
         {
-            ExitGroupRequest request = new ExitGroupRequest(GroupId, peer, arg);
+            //ExitGroupRequest request = new ExitGroupRequest(GroupId, peer, arg);
             return false;
         }
 
