@@ -40,7 +40,8 @@ namespace GameSystem.GameCore.Physics
         /// </summary>
         public void ExecuteCollision(CollisionProxy colA, CollisionProxy colB)
         {
-            CollisionEvent.Invoke(colA, colB);
+            if(CollisionEvent != null)
+                CollisionEvent.Invoke(colA, colB);
         }
 
         /// <summary>

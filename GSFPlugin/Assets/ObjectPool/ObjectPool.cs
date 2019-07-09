@@ -37,9 +37,9 @@ public abstract class ObjectPool<T>
     protected virtual void SuppleHandler(T item) { }
 
     #region Get methods
-    protected virtual void GetHandler(T item) { }
+    protected virtual void GetHandler(T item, object arg) { }
 
-    public virtual T Get()
+    public virtual T Get(object arg)
     {
         if(storage.Count <= 0)
         {
@@ -47,11 +47,11 @@ public abstract class ObjectPool<T>
         }
         T item = storage[storage.Count - 1];
         storage.RemoveAt(storage.Count - 1);
-        GetHandler(item);
+        GetHandler(item, arg);
         return item;
     }
 
-    public virtual T[] Get(int amount)
+    public virtual T[] Get(int amount, object arg)
     {
         if (storage.Count < amount)
         {
@@ -62,7 +62,7 @@ public abstract class ObjectPool<T>
         storage.RemoveRange(storage.Count - amount, amount);
         for(int i = 0; i < items.Length; i++)
         {
-            GetHandler(items[i]);
+            GetHandler(items[i], arg);
         }
         return items;
     }

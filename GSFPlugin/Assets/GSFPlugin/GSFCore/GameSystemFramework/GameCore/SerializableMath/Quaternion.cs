@@ -99,7 +99,7 @@ namespace GameSystem.GameCore.SerializableMath
             z = newV.z;
         }
 
-        public Vector3 ToEuler(Quaternion q)
+        public static Vector3 ToEuler(Quaternion q)
         {
             Vector3 e;
             float sqw = q.w * q.w;
@@ -128,7 +128,7 @@ namespace GameSystem.GameCore.SerializableMath
             return e;
         }
 
-        public Vector3 ToEulerDegree(Quaternion q)
+        public static Vector3 ToEulerDegree(Quaternion q)
         {
             float toRadian = (float)(Math.PI / 180.0);
 
@@ -205,8 +205,8 @@ namespace GameSystem.GameCore.SerializableMath
 
         public static Quaternion Euler(Vector3 euler)
         {
-            float heading = euler.y;
-            float attitude = euler.z;
+            float heading = euler.z;
+            float attitude = euler.y;
             float bank = euler.x;
             Quaternion q = new Quaternion();
             double c1 = Math.Cos(heading / 2);
@@ -218,33 +218,17 @@ namespace GameSystem.GameCore.SerializableMath
             double c1c2 = c1 * c2;
             double s1s2 = s1 * s2;
             q.w = (float)(c1c2 * c3 - s1s2 * s3);
-            q.x = (float)(c1c2 * s3 + s1s2 * c3);
-            q.y = (float)(s1 * c2 * c3 + c1 * s2 * s3);
-            q.z = (float)(c1 * s2 * c3 - s1 * c2 * s3);
+            q.x = (float)(c1c2 * s3 - s1s2 * c3);
+            q.y = (float)(s1 * c2 * s3 + c1 * s2 * c3);
+            q.z = (float)(s1 * c2 * c3 - c1 * s2 * s3);
+            //UnityDebugger.instance.Log(q);
             return q;
         }
 
-        public static Quaternion EulerDegree(Vector3 eulerDegree)
-        {
-            float toRadian = (float)(Math.PI / 180.0);
 
-            float heading = eulerDegree.y * toRadian;
-            float attitude = eulerDegree.z * toRadian;
-            float bank = eulerDegree.x * toRadian;
-            Quaternion q = new Quaternion();
-            double c1 = Math.Cos(heading / 2);
-            double s1 = Math.Sin(heading / 2);
-            double c2 = Math.Cos(attitude / 2);
-            double s2 = Math.Sin(attitude / 2);
-            double c3 = Math.Cos(bank / 2);
-            double s3 = Math.Sin(bank / 2);
-            double c1c2 = c1 * c2;
-            double s1s2 = s1 * s2;
-            q.w = (float)(c1c2 * c3 - s1s2 * s3);
-            q.x = (float)(c1c2 * s3 + s1s2 * c3);
-            q.y = (float)(s1 * c2 * c3 + c1 * s2 * s3);
-            q.z = (float)(c1 * s2 * c3 - s1 * c2 * s3);
-            return q;
+        public override string ToString()
+        {
+            return string.Format("(x:{0}, y:{1}, z:{2}, w:{3})", x, y, z, w);
         }
     }
 }

@@ -26,7 +26,7 @@ public class GameObjectPool : TrackableObjectPool<GameObject>
         item.SetActive(false);
     }
 
-    protected override void GetHandler(GameObject item)
+    protected override void GetHandler(GameObject item, object arg)
     {
         item.SetActive(true);
     }

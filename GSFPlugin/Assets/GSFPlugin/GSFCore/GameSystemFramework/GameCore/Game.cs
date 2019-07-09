@@ -12,16 +12,17 @@ namespace GameSystem.GameCore
     {
         private static IdentityPool idPool = new IdentityPool();
         public int GameId { get; private set; }
+        public string GameName { get; private set; }
         public int GroupId { get { return peerGroup.GroupId; } }
         public int OperationCode { get { return peerGroup.OperationCode; } }
         public Scene mainScene;
         SceneBuilder sceneBuilder;
 
-        public float TargetFPS = 60f;
-        private bool running;
-        private Task loopTask;
+        LogicLooper looper;
 
         public IDebugger Debugger;
+
+        public GameStatus status;
         
         private PhysicEngineProxy physicEngine;
         private GameSourceManager gameSourceManager;
@@ -30,22 +31,24 @@ namespace GameSystem.GameCore
         public int MaxPlayerCount = 20;
         public int PlayerCount { get; }
 
-        /// <summary>
-        /// Boolean of game is cloesed
-        /// </summary>
-        private bool isClosed;
-
         public delegate void ReceiveGamePacketHandler(IPeer peer, object packet);
         public ReceiveGamePacketHandler OnReceiveGamePacket;
 
-        public Game(PhysicEngineProxy physicEngine, IDebugger debugger)
+        public Game(string name, IDebugger debugger)
         {
             GameId = idPool.NewID();
+            GameName = name;
             Debugger = debugger;
-            this.physicEngine = physicEngine;
+            physicEngine = new BulletEngine.BulletPhysicEngine(debugger);
             gameSourceManager = new GameSourceManager(this, physicEngine, debugger);
             mainScene = new Scene(gameSourceManager, debugger);
             peerGroup = new PeerGroup(new FormmaterSerializer());
+            peerGroup.OperationCode = SimpleGameMetrics.OperationCode.Game;
+
+            looper = new LogicLooper(60f);
+            looper.OnUpdated += GameLoop;
+
+            status = GameStatus.WaitToInitialize;
         }
 
         public async Task Initialize()
@@ -53,8 +56,12 @@ namespace GameSystem.GameCore
             TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
             sceneBuilder = new SimpleGameBuilder(Debugger);
             sceneBuilder.Build(mainScene);
+
+            peerGroup.OnGroupReceiveEvent += ReceiveGamePacket;
             tcs.SetResult(null);
             await tcs.Task;
+
+            status = GameStatus.WaitToStart;
         }
 
         public int GetGameID()
@@ -62,61 +69,34 @@ namespace GameSystem.GameCore
             return GameId;
         }
 
+        public string GetGameName()
+        {
+            return GameName;
+        }
+
         public void Start()
         {
-            peerGroup.OnGroupReceiveEvent += ReceiveGamePacket;
-            loopTask = Task.Run(GameLoop);
-            UnityEngine.Debug.Log($"Start Game[{GameId}]");
+            looper.Start();
+            status = GameStatus.Running;
         }
 
         public void Close()
-        {
-            if (isClosed)
-                return;
-            if (!running)
-                CloseSafely();
-            running = false;    // set loop stopped
-            isClosed = true;
-        }
-
-        private void CloseSafely()
-        {
+        {   
+            looper.Close();
             // let all peers in group exit
             peerGroup.ExitAll("Game is closed.", null);
-            Debugger.Log($"Close game[{GameId}].");
+            idPool.RecycleID(GameId);
+            status = GameStatus.Closed;
         }
 
-        private void GameLoop()
+        private void GameLoop(TimeSpan deltaTime)
         {
-            DateTime curr_time = DateTime.UtcNow;
-            DateTime last_time = curr_time;
-            running = true;
-            while (running)
-            {
-                curr_time = DateTime.UtcNow;
-                TimeSpan deltaTime;
-                // caculate time span between current and last time
-                if ((deltaTime = curr_time - last_time).TotalMilliseconds > 0)
-                {
-                    // update physic objects
-                    physicEngine.Update(deltaTime);
-                    // update game sources 
-                    gameSourceManager.Update(deltaTime);
-                    // receive network packet and execute receive events
-                    peerGroup.Poll();
-                }
-                // correct time into fps
-                float TargetSecond = 1f / TargetFPS;
-                int delayTime = (int)(TargetSecond - deltaTime.TotalSeconds) * 1000;
-                // force release thread 5 ms
-                if (delayTime > 5)
-                    Thread.Sleep(delayTime);
-                else
-                    Thread.Sleep(5);
-                last_time = curr_time;
-            }
-            if (isClosed)
-                Task.Run(CloseSafely);
+            // update physic objects
+            physicEngine.Update(deltaTime);
+            // update game sources 
+            gameSourceManager.Update(deltaTime);
+            // receive network packet and execute receive events
+            peerGroup.Poll();
         }
 
         #region Join request methods
@@ -199,5 +179,13 @@ namespace GameSystem.GameCore
         Smooth,     // means amount of queuing and in group are not over maximum
         Crowded,    // means amount of queuing and in group are over maximum
         Full        // means group is full
+    }
+
+    public enum GameStatus
+    {
+        WaitToInitialize,
+        WaitToStart,
+        Running,
+        Closed
     }
 }

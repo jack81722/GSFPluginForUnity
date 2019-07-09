@@ -18,7 +18,7 @@ public class GSFGOViewPool : TrackableObjectPool<GSFGoView>
         return x.SID.CompareTo(y.SID);
     }
 
-    protected override void GetHandler(GSFGoView item)
+    protected override void GetHandler(GSFGoView item, object arg)
     {
         item.gameObject.SetActive(true);
         if (simTrans != null) item.transform.SetParent(simTrans);

@@ -30,7 +30,8 @@ public static class SimpleGameMetrics
     /// </summary>
     public static class ClientGameSwitchCode
     {
-        public const int Control = 0;
+        public const int Move = 0;
+        public const int Shoot = 1;
     }
 
     public static class ServerLobbySwitchCode
@@ -44,5 +45,6 @@ public static class SimpleGameMetrics
     public static class ServerGameSwitchCode
     {
         public const int BoxInfo = 0;
+        public const int BulletInfo = 1;
     }
 }

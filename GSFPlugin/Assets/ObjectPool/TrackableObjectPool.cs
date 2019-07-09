@@ -17,9 +17,10 @@ public abstract class TrackableObjectPool<T> : ObjectPool<T>
 
     protected abstract override T Create();
 
-    public override T Get()
+    public override T Get(object arg)
     {
-        T item = base.Get();
+        T item = base.Get(arg);
+        Debug.Log("Tracked");
         tracker.Add(item);
         return item;
     }

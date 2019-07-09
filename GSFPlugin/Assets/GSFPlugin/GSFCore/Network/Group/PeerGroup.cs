@@ -71,7 +71,10 @@ namespace GameSystem.GameCore.Network
         #region Send methods
         public void Broadcast(object obj, Reliability reliability)
         {
-            byte[] bytes = serializer.Serialize(obj);
+            GenericPacket packet = new GenericPacket();
+            packet.InstCode = OperationCode;
+            packet.Data = obj;
+            byte[] bytes = serializer.Serialize(packet);
             foreach (var peer in peers.Values)
             {
                 peer.Send(bytes, reliability);
@@ -79,7 +82,7 @@ namespace GameSystem.GameCore.Network
         }
 
         public async Task BroadcastAsync(object obj, Reliability reliability)
-        {
+        {   
             Task task = Task.Run(() => Broadcast(obj, reliability));
             await task;
         }
@@ -88,14 +91,20 @@ namespace GameSystem.GameCore.Network
         {
             if (peers.TryGetValue(peerID, out IPeer peer))
             {
-                byte[] bytes = serializer.Serialize(obj);
+                GenericPacket packet = new GenericPacket();
+                packet.InstCode = OperationCode;
+                packet.Data = obj;
+                byte[] bytes = serializer.Serialize(packet);
                 peer.Send(bytes, reliability);
             }
         }
 
         public async Task SendAsync(int peerId, object obj, Reliability reliability)
         {
-            Task task = Task.Run(() => Send(peerId, obj, reliability));
+            GenericPacket packet = new GenericPacket();
+            packet.InstCode = OperationCode;
+            packet.Data = obj;
+            Task task = Task.Run(() => Send(peerId, packet, reliability));
             await task;
         }
         #endregion
@@ -133,7 +142,15 @@ namespace GameSystem.GameCore.Network
             if (result.type == JoinGroupResponse.ResultType.Accepted)
             {
                 lock (peers) peers.Add(peer.Id, peer);
-                OnPeerJoinedEvent.Invoke(peer);
+                try
+                {
+                    if (OnPeerJoinedEvent != null)
+                        OnPeerJoinedEvent.Invoke(peer);
+                }
+                catch (Exception e)
+                {
+
+                }
             }
             return result;
         }

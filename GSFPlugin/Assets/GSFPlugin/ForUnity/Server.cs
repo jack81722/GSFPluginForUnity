@@ -92,7 +92,10 @@ namespace GameSystem.GameCore.Network
 
         protected virtual void OnPeerJoinResponse(IPeer peer, JoinGroupResponse response)
         {
-            byte[] dgram = serializer.Serialize(response);
+            GenericPacket packet = new GenericPacket();
+            packet.InstCode = SimpleGameMetrics.OperationCode.Group;
+            packet.Data = response;
+            byte[] dgram = serializer.Serialize(packet);
             peer.Send(dgram, Reliability.ReliableOrder);
         }
 
@@ -106,11 +109,13 @@ namespace GameSystem.GameCore.Network
         {
             ServerPeer newPeer = new ServerPeer(peer);
             peer.Tag = newPeer;
-            Task.Run(async () => 
-            {
-                var response = await group.JoinAsync(newPeer, null);
-                OnPeerJoinResponse(newPeer, response);
+            var task = Task.Run(async () => {
+                var result = await group.JoinAsync(newPeer, null);
+                return result;
             });
+            task.ContinueWith((res) => {
+                    OnPeerJoinResponse(newPeer, res.Result);
+                }, TaskContinuationOptions.OnlyOnRanToCompletion);
         }
 
         private void Listener_NetworkReceiveEvent(NetPeer peer, NetPacketReader reader, DeliveryMethod deliveryMethod)
@@ -143,6 +148,7 @@ namespace GameSystem.GameCore.Network
 
         private void Group_OnPeerJoinRequest(JoinGroupRequest request)
         {
+
             if (AuthenticatePeer(request.Peer))
             {
                 request.Accept(null);

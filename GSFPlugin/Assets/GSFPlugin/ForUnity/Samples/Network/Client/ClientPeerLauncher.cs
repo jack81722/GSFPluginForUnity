@@ -93,7 +93,7 @@ public class ClientPeerLauncher : MonoBehaviour
     {
         GenericPacket packet = obj as GenericPacket;
         if(packet != null)
-        {
+        {   
             if (receivers.TryGetValue(packet.InstCode, out List<IPacketReceiver> receiverList))
             {
                 try
@@ -151,6 +151,7 @@ public class ClientPeerLauncher : MonoBehaviour
         if(response != null)
         {
             AddGroupToken(response.operationCode, response.groupId);
+            Debug.Log(response);
         }
     }
 
@@ -166,6 +167,11 @@ public class ClientPeerLauncher : MonoBehaviour
         {
             Debug.LogError("Cannot find group id.");
         }
+    }
+
+    public bool ExistGroup(int operationCode)
+    {
+        return channels.ContainsKey(operationCode);
     }
 
     private void Update()

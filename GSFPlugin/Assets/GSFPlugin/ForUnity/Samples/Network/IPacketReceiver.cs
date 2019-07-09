@@ -12,7 +12,5 @@ public interface IPacketReceiver
 public class GenericPacket
 {
     public int InstCode;
-    public bool Req, Res;
-    public int Num;
     public object Data;
 }

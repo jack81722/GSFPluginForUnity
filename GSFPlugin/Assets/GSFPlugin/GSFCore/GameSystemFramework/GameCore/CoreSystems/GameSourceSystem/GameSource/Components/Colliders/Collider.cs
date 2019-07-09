@@ -48,7 +48,7 @@ namespace GameSystem.GameCore
 
         private void ColProxy_CollisionEvent(CollisionProxy colA, CollisionProxy colB)
         {
-            if(colA.collider.executing && colB.collider.executing)
+            if(OnCollisionEvent != null && colA.collider.executing && colB.collider.executing)
                 OnCollisionEvent.Invoke(colA.collider, colB.collider);
         }
     }
