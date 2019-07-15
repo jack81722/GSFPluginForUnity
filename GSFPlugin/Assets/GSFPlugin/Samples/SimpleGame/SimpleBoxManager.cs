@@ -35,6 +35,10 @@ public class SimpleBoxManager : Component
         }
     }
 
+    /// <summary>
+    /// Create box prefab
+    /// </summary>
+    /// <returns>box prefab game object</returns>
     public GameObject CreateBoxPrefab()
     {
         GameObject prefab = CreateGameObject();
@@ -49,17 +53,25 @@ public class SimpleBoxManager : Component
         return prefab;
     }
 
+    /// <summary>
+    /// Create bullet prefab
+    /// </summary>
+    /// <returns>bullet prefab game object</returns>
     public GameObject CreateBulletPrefab()
     {
         GameObject prefab = CreateGameObject();
         prefab.Name = "Bullet";
         Bullet component = prefab.AddComponent<Bullet>();
         SphereCollider collider = prefab.AddComponent<SphereCollider>();
-        collider.SetSize(0.1f);
+        collider.SetSize(0.25f);
         prefab.SetActive(false);
         return prefab;
     }
 
+    /// <summary>
+    /// Accept player
+    /// </summary>
+    /// <param name="request">join request</param>
     public void AcceptPlayer(JoinGroupRequest request)
     {
         IPeer peer = request.Accept("SimpleGame");
@@ -84,6 +96,11 @@ public class SimpleBoxManager : Component
         return new Vector3(floats[0], floats[1], floats[2]);
     }
 
+    /// <summary>
+    /// Receive packet handler method
+    /// </summary>
+    /// <param name="peer">source peer of sending the packet</param>
+    /// <param name="packet">packet</param>
     public void OnReceiveControlPacket(IPeer peer, object packet)
     {
         object[] gamePacket = packet as object[];
@@ -120,7 +137,7 @@ public class SimpleBoxManager : Component
                 Reliability.Sequence);
 
 
-            if (bullets.Count > 0)
+            //if (bullets.Count > 0)
             {
                 List<Bullet.BulletInfo> bulletPacket = new List<Bullet.BulletInfo>();
                 for (int i = 0; i < bullets.Count; i++)
@@ -145,6 +162,9 @@ public class SimpleBoxManager : Component
         }
     }
 
+    /// <summary>
+    /// Move control handler
+    /// </summary>
     private void MoveControl(IPeer peer, float[] direction)
     {   
         Vector3 d = ToVector3(direction);

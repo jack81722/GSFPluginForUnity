@@ -168,7 +168,7 @@ public class ClientBulletPool : TrackableObjectPool<ClientBullet>
     protected override void GetHandler(ClientBullet item, object arg)
     {
         item.gameObject.SetActive(true);
-        Debug.Log($"Get new bullet[{arg}]");
+        //Debug.Log($"Get new bullet[{arg}]");
         item.id = (int)arg;
     }
 
@@ -202,7 +202,7 @@ public class ClientBulletPool : TrackableObjectPool<ClientBullet>
             out List<ClientBullet> existed,
             out List<Bullet.BulletInfo> updated,
             Compare);
-        Debug.Log($"Added : {added.Count}, Removed : {removed.Count}, Updated : {updated.Count}");
+        //Debug.Log($"Added : {added.Count}, Removed : {removed.Count}, Updated : {updated.Count}");
         for(int i = 0; i < added.Count; i++)
         {
             var bullet = Get(added[i].id);

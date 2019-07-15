@@ -466,7 +466,7 @@ namespace AdvancedGeneric
                 }
             }
             if (i < container.Count)
-                removed.AddRange(container.GetRange(i, container.Count - 1));
+                removed.AddRange(container.GetRange(i, container.Count));
             if (j < tmp_others.Count)
                 added.AddRange(tmp_others.GetRange(j, tmp_others.Count - j));
         }
