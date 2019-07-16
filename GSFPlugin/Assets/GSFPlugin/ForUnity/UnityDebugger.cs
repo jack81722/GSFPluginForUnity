@@ -27,16 +27,22 @@ public class UnityDebugger : IDebugger
 
     public void Log(object obj)
     {
+#if UNITY_EDITOR
         Debug.Log(obj);
+#endif
     }
 
     public void LogError(object obj)
     {
+#if UNITY_EDITOR
         Debug.LogError(obj);
+#endif
     }
 
     public void LogWarning(object obj)
     {
+#if UNITY_EDITOR
         Debug.LogWarning(obj);
+#endif
     }
 }

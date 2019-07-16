@@ -160,7 +160,7 @@ namespace GameSystem.GameCore.Network
 
         private void HandleGroupJoinReqeust()
         {
-            while (group.GetQueueingCount() > 0)
+            while (group.GetJoinQueueingCount() > 0)
                 Group_OnPeerJoinRequest(group.DequeueJoinRequest());
         }
         #endregion

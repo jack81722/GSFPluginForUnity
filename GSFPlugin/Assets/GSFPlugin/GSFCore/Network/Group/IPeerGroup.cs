@@ -20,6 +20,8 @@ namespace GameSystem.GameCore.Network
 
         List<IPeer> FindAllPeers(Predicate<IPeer> predicate);
 
+        void Exit(IPeer peer);
+
         void Close();
     }
 }

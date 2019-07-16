@@ -10,7 +10,7 @@ public class ServerLauncher : UnityEngine.MonoBehaviour
     public bool StartOnAwake = true;
     public bool StopOnDestroy = true;
 
-    private IDebugger debugger = new UnityDebugger();
+    private IDebugger debugger = UnityDebugger.instance;
 
     public int Port;
     public string ConnectKey;
@@ -21,16 +21,18 @@ public class ServerLauncher : UnityEngine.MonoBehaviour
 
     public void Awake()
     {
+#if UNITY_EDITOR
         if (StartOnAwake && !isRunning)
         {
             ResetServer();
             Launch();
         }
         DontDestroyOnLoad(gameObject);
+#endif
     }
 
     public void Launch()
-    {   
+    {
         Log("Launching server ... ");
         server.ConnectKey = ConnectKey;
         server.MaxPeers = MaxPeers;
@@ -45,7 +47,7 @@ public class ServerLauncher : UnityEngine.MonoBehaviour
 
     public void ResetServer()
     {
-        server = new SimpleServer(new FormmaterSerializer());
+        server = new SimpleServer(FormmaterSerializer.GetInstance());
     }
 
     private void OnDestroy()

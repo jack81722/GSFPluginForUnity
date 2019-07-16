@@ -1,4 +1,5 @@
-﻿using GameSystem.GameCore.Network;
+﻿using GameSystem.GameCore.Debugger;
+using GameSystem.GameCore.Network;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,17 +15,23 @@ public class ClientPeerLauncher : MonoBehaviour
     public int serverPort = 8888;
     public string connectKey = "Test";
 
+    private IDebugger debugger;
+
     private Dictionary<int, List<IPacketReceiver>> receivers;
     private Dictionary<int, List<Action<object>>> actions;
     private Dictionary<int, int> channels;
 
     private void Awake()
     {
+        debugger = UnityDebugger.instance;
+
         // New client peer before start
-        peer = new ClientPeer(new FormmaterSerializer());
+        peer = new ClientPeer(FormmaterSerializer.GetInstance(), debugger);
         receivers = new Dictionary<int, List<IPacketReceiver>>();
         actions = new Dictionary<int, List<Action<object>>>();
         channels = new Dictionary<int, int>();
+
+        
     }
 
     private void Start()
@@ -105,7 +112,7 @@ public class ClientPeerLauncher : MonoBehaviour
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(e.Message + e.StackTrace);
+                    debugger.LogError(e.Message + e.StackTrace);
                 }
             }
             if (actions.TryGetValue(packet.InstCode, out List<Action<object>> actionList))
@@ -118,14 +125,14 @@ public class ClientPeerLauncher : MonoBehaviour
                     }
                     catch (Exception e)
                     {
-                        Debug.Log(e.Message + e.StackTrace);
+                        debugger.Log(e.Message + e.StackTrace);
                     }
                 }
             }
         }
         else
         {
-            Debug.Log("Packet is null.");
+            debugger.Log("Packet is null.");
         }
     }
 
@@ -139,7 +146,7 @@ public class ClientPeerLauncher : MonoBehaviour
         else
         {
             channels.Add(operationCode, groupId);
-            Debug.Log($"add new token ({operationCode},{groupId})");
+            debugger.Log($"add new token ({operationCode},{groupId})");
             
         }
 
@@ -151,7 +158,7 @@ public class ClientPeerLauncher : MonoBehaviour
         if(response != null)
         {
             AddGroupToken(response.operationCode, response.groupId);
-            Debug.Log(response);
+            debugger.Log(response);
         }
     }
 
@@ -165,7 +172,7 @@ public class ClientPeerLauncher : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Cannot find group id.");
+            debugger.LogError("Cannot find group id.");
         }
     }
 

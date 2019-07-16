@@ -22,14 +22,16 @@ namespace GameSystem.GameCore.Network
         /// </summary>
         protected Dictionary<int, IPeer> peers;
 
+        #region Join request fields
         /// <summary>
         /// Queue of requests want to join
         /// </summary>
-        private List<JoinGroupRequest> queueing;
+        private List<JoinGroupRequest> joinQueueing;
         /// <summary>
         /// List of requests are handling but not respond yet
         /// </summary>
-        private List<JoinGroupRequest> handling;
+        private List<JoinGroupRequest> joinHandling;
+        #endregion
 
         protected PacketEventPool eventPool;
         private bool isPolling;
@@ -48,8 +50,8 @@ namespace GameSystem.GameCore.Network
             this.serializer = serializer;
             peers = new Dictionary<int, IPeer>();
             eventPool = new PacketEventPool();
-            queueing = new List<JoinGroupRequest>();
-            handling = new List<JoinGroupRequest>();
+            joinQueueing = new List<JoinGroupRequest>();
+            joinHandling = new List<JoinGroupRequest>();
         }
 
         public void Poll()
@@ -127,18 +129,18 @@ namespace GameSystem.GameCore.Network
                 return new JoinGroupResponse(GroupId, OperationCode, JoinGroupResponse.ResultType.HasJoined, string.Format("Has joined in group"));
 
             // check if peer is in queue
-            if (queueing.Exists(req => req.Peer.Id == peer.Id))
+            if (joinQueueing.Exists(req => req.Peer.Id == peer.Id))
                 return new JoinGroupResponse(GroupId, OperationCode, JoinGroupResponse.ResultType.InQueue, string.Format("Join request is in queue."));
 
             // check if peer is been handling
-            if(handling.Exists(req => req.Peer.Id == peer.Id))
+            if(joinHandling.Exists(req => req.Peer.Id == peer.Id))
                 return new JoinGroupResponse(GroupId, OperationCode, JoinGroupResponse.ResultType.Handling, string.Format("Join request is handling."));
 
             // add request into queue and waiting result
             JoinGroupRequest request = new JoinGroupRequest(GroupId, OperationCode, peer, arg);
-            queueing.Add(request);
+            joinQueueing.Add(request);
             JoinGroupResponse result = await request.Task;
-            handling.Remove(request);       // remove request from handling (because finished)
+            joinHandling.Remove(request);       // remove request from handling (because finished)
             if (result.type == JoinGroupResponse.ResultType.Accepted)
             {
                 lock (peers) peers.Add(peer.Id, peer);
@@ -149,55 +151,55 @@ namespace GameSystem.GameCore.Network
                 }
                 catch (Exception e)
                 {
-
+                    
                 }
             }
             return result;
         }
 
-        public async Task<bool> ExitAsync(IPeer peer, object arg)
+        public void Exit(IPeer peer)
         {
-            //ExitGroupRequest request = new ExitGroupRequest(GroupId, peer, arg);
-            return false;
+            peers.Remove(peer.Id);
         }
 
-        public int GetQueueingCount()
+        public int GetJoinQueueingCount()
         {
-            return queueing.Count;
+            return joinQueueing.Count;
         }
 
-        public int GetHandlingCount()
+        public int GetJoinHandlingCount()
         {
-            return handling.Count;
+            return joinHandling.Count;
         }
 
         public JoinGroupRequest DequeueJoinRequest()
         {
-            lock (queueing)
+            lock (joinQueueing)
             {
-                if (queueing.Count < 0)
+                if (joinQueueing.Count < 0)
                     throw new InvalidOperationException("No queueing request.");
-                JoinGroupRequest request = queueing[0];
-                queueing.RemoveAt(0);
+                JoinGroupRequest request = joinQueueing[0];
+                joinQueueing.RemoveAt(0);
                 // add request into handling
-                handling.Add(request);
+                joinHandling.Add(request);
                 return request;
             }
         }
 
+        
         public void ExitAll(string msg, object arg)
         {
-            int queueingCount = queueing.Count;
-            for(int i = 0; i< queueing.Count; i++)
+            int queueingCount = joinQueueing.Count;
+            for(int i = 0; i< joinQueueing.Count; i++)
             {
-                queueing[i].Cancel(msg, arg);
+                joinQueueing[i].Cancel(msg, arg);
             }
-            int handlingCount = handling.Count;
-            for(int i = 0; i < handling.Count; i++)
+            int handlingCount = joinHandling.Count;
+            for(int i = 0; i < joinHandling.Count; i++)
             {
-                handling[i].Cancel(msg, arg);
+                joinHandling[i].Cancel(msg, arg);
             }
-            handling.Clear();
+            joinHandling.Clear();
             // remove group from peer
             int inGroupCount = peers.Count;
             peers.Clear();
@@ -205,6 +207,7 @@ namespace GameSystem.GameCore.Network
         }
         #endregion
 
+        #region Search peer methods
         /// <summary>
         /// Get peer in group by peer identity
         /// </summary>
@@ -245,6 +248,7 @@ namespace GameSystem.GameCore.Network
                 return found.FindAll(predicate);
             }
         }
+        #endregion
 
         public void Close()
         {
@@ -260,4 +264,17 @@ namespace GameSystem.GameCore.Network
         }
     }
 
+    public class ExitGroupEvent
+    {
+        public int groupId;
+        public IPeer peer;
+        public object arg;
+
+        public ExitGroupEvent(int groupId, IPeer peer, object arg)
+        {
+            this.groupId = groupId;
+            this.peer = peer;
+            this.arg = arg;
+        }
+    }
 }

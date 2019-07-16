@@ -42,7 +42,7 @@ namespace GameSystem.GameCore
             physicEngine = new BulletEngine.BulletPhysicEngine(debugger);
             gameSourceManager = new GameSourceManager(this, physicEngine, debugger);
             mainScene = new Scene(gameSourceManager, debugger);
-            peerGroup = new PeerGroup(new FormmaterSerializer());
+            peerGroup = new PeerGroup(FormmaterSerializer.GetInstance());
             peerGroup.OperationCode = SimpleGameMetrics.OperationCode.Game;
 
             looper = new LogicLooper(60f);
@@ -104,7 +104,7 @@ namespace GameSystem.GameCore
         {
             int i = 0;
             List<JoinGroupRequest> reqs = new List<JoinGroupRequest>();
-            while (i < count && peerGroup.GetQueueingCount() > 0)
+            while (i < count && peerGroup.GetJoinQueueingCount() > 0)
             {
                 reqs.Add(peerGroup.DequeueJoinRequest());
             }
@@ -114,7 +114,7 @@ namespace GameSystem.GameCore
         public List<JoinGroupRequest> GetJoinRequestList()
         {
             List<JoinGroupRequest> reqs = new List<JoinGroupRequest>();
-            while (peerGroup.GetQueueingCount() > 0)
+            while (peerGroup.GetJoinQueueingCount() > 0)
                 reqs.Add(peerGroup.DequeueJoinRequest());
             return reqs;
         }
@@ -122,7 +122,7 @@ namespace GameSystem.GameCore
         public QueueStatus GetQueueStatus()
         {
             // connected_peers + handling_peers + queueing_peers
-            if (peerGroup.GetPeerList().Count + peerGroup.GetHandlingCount() + peerGroup.GetQueueingCount() >= MaxPlayerCount)
+            if (peerGroup.GetPeerList().Count + peerGroup.GetJoinHandlingCount() + peerGroup.GetJoinQueueingCount() >= MaxPlayerCount)
                 return QueueStatus.Crowded;
             else if (peerGroup.GetPeerList().Count >= MaxPlayerCount)
                 return QueueStatus.Full;
@@ -170,6 +170,11 @@ namespace GameSystem.GameCore
         public List<IPeer> FindAllPeers(Predicate<IPeer> predicate)
         {
             return peerGroup.FindAllPeers(predicate);
+        }
+
+        public void Exit(IPeer peer)
+        {
+            peerGroup.Exit(peer);
         }
         #endregion
     }

@@ -47,7 +47,7 @@ public class Lobby : IPeerGroup
     private void Looper_OnUpdated(TimeSpan deltaTime)
     {
         // authenticate
-        while (group.GetQueueingCount() > 0)
+        while (group.GetJoinQueueingCount() > 0)
         {
             var req = group.DequeueJoinRequest();
             req.Accept(null);
@@ -109,6 +109,11 @@ public class Lobby : IPeerGroup
             gameInfoList.Add(new GameInformation(game.GameId, game.GetGameName()));
         }
         return gameInfoList;
+    }
+
+    public void Exit(IPeer peer)
+    {
+        group.Exit(peer);
     }
     #endregion
 }

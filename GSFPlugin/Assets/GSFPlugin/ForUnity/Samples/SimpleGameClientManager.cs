@@ -26,7 +26,7 @@ public class SimpleGameClientManager : MonoBehaviour, IPacketReceiver
         bulletPool.Supple(30);
     }
 
-    FormmaterSerializer serializer = new FormmaterSerializer();
+    FormmaterSerializer serializer = FormmaterSerializer.GetInstance();
 
     public int OperationCode { get { return SimpleGameMetrics.OperationCode.Game; } }
 

@@ -1,8 +1,8 @@
-﻿using GameSystem.GameCore.Network;
+﻿#if UNITY_EDITOR
+using GameSystem.GameCore.Network;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
-
 
 [CustomEditor(typeof(ClientPeerLauncher))]
 public class ClientPeerLauncherEditor : Editor
@@ -41,3 +41,4 @@ public class ClientPeerLauncherEditor : Editor
         serializedObject.ApplyModifiedProperties();
     }
 }
+#endif

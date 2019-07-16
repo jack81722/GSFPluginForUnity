@@ -1,9 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿#if UNITY_EDITOR
 using UnityEditor;
-using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 [CustomEditor(typeof(ServerLauncher))]
 public class ServerLauncherEditor : Editor
@@ -57,6 +54,6 @@ public class ServerLauncherEditor : Editor
         }
 
         serializedObject.ApplyModifiedProperties();
-        //SceneView.RepaintAll();
     }
 }
+#endif

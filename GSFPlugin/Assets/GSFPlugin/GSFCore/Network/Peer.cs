@@ -43,5 +43,12 @@ namespace GameSystem.GameCore.Network
         void Disconnect();
     }
 
+    public interface IGroupablePeer
+    {
+        IPeer peer { get; }
+        void TrackGroup(IPeerGroup group);
+        void LeaveGroup(IPeerGroup group);
+    }
+
     public delegate void OnReceivePacketHandler(IPeer peer, object packet, Reliability reliability);
 }

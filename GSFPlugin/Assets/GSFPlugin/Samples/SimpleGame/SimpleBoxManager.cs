@@ -28,12 +28,10 @@ public class SimpleBoxManager : Component
         bulletPool.Supple(30);
         bullets = new List<Bullet>();
 
-        var joinReqs = Network_GetJoinRequests();
-        for(int i = 0; i < joinReqs.Length; i++)
-        {
-            AcceptPlayer(joinReqs[i]);
-        }
+        HandleJoinRequest();
     }
+
+    
 
     /// <summary>
     /// Create box prefab
@@ -68,11 +66,27 @@ public class SimpleBoxManager : Component
         return prefab;
     }
 
+    private void HandleJoinRequest()
+    {
+        var joinReqs = Network_GetJoinRequests();
+        for (int i = 0; i < joinReqs.Length; i++)
+        {
+            AcceptPlayer(joinReqs[i]);
+        }
+    }
+
+    private void HandleExitRequest()
+    {
+        // for each exit join request ...
+        // remove box from manager
+        // remove all bullet which exited player shot?
+    }
+
     /// <summary>
     /// Accept player
     /// </summary>
     /// <param name="request">join request</param>
-    public void AcceptPlayer(JoinGroupRequest request)
+    private void AcceptPlayer(JoinGroupRequest request)
     {
         IPeer peer = request.Accept("SimpleGame");
         // check if peer is connected
@@ -130,7 +144,9 @@ public class SimpleBoxManager : Component
             foreach (var box in boxes.Values)
             {
                 boxPacket[posIndex] = box.UpdatePosAndRot(second);
+                posIndex++;
             }
+            
             Array.Sort(boxPacket, (x, y) => x.boxId.CompareTo(y.boxId));
             Network_Broadcast(
                 new object[] { SimpleGameMetrics.ServerGameSwitchCode.BoxInfo, boxPacket },
@@ -160,6 +176,8 @@ public class SimpleBoxManager : Component
                     Reliability.Sequence);
             }
         }
+
+        HandleJoinRequest();
     }
 
     /// <summary>

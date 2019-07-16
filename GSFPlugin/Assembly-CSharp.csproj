@@ -171,6 +171,7 @@
     <Compile Include="Assets\GSFPlugin\Samples\SimpleGame\SimpleBox.cs" />
     <Compile Include="Assets\GSFPlugin\Samples\SimpleGame\SimpleBoxManager.cs" />
     <Compile Include="Assets\GSFPlugin\Samples\SimpleGame\SimpleGameBuilder.cs" />
+    <Compile Include="Assets\LazySingleton.cs" />
     <Compile Include="Assets\LiteNetLib\BaseChannel.cs" />
     <Compile Include="Assets\LiteNetLib\ConnectionRequest.cs" />
     <Compile Include="Assets\LiteNetLib\INetEventListener.cs" />

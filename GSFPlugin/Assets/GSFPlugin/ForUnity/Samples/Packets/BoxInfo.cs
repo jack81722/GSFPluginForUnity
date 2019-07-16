@@ -1,4 +1,5 @@
 ﻿using GameSystem.GameCore.SerializableMath;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -39,6 +40,6 @@ public class BoxInfo
 
     public override string ToString()
     {
-        return $"Box[{boxId}]";
+        return $"Box[{boxId}] : position ({boxPos[0]}, {boxPos[1]}, {boxPos[2]})";
     }
 }

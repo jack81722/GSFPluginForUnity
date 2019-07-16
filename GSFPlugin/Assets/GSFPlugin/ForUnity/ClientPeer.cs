@@ -1,4 +1,5 @@
-﻿using GameSystem.GameCore.Network;
+﻿using GameSystem.GameCore.Debugger;
+using GameSystem.GameCore.Network;
 using LiteNetLib;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ namespace GameSystem.GameCore.Network
         protected NetManager netManager;
         protected NetPeer peer;
         protected ISerializer serializer;
+        protected IDebugger debugger;
 
         #region Peer information
         public string DestinationIP
@@ -37,9 +39,10 @@ namespace GameSystem.GameCore.Network
         public object UserObject { get; set; }
         #endregion
 
-        public ClientPeer(ISerializer serializer) : base()
+        public ClientPeer(ISerializer serializer, IDebugger debugger) : base()
         {
             this.serializer = serializer;
+            this.debugger = debugger;
             listener = new EventBasedNetListener();
             listener.NetworkReceiveEvent += Listener_NetworkReceiveEvent;
             netManager = new NetManager(listener);
@@ -68,7 +71,7 @@ namespace GameSystem.GameCore.Network
 
         public void Connect(string ipAddr, int port, string connectKey)
         {
-            UnityEngine.Debug.Log($"Connect to [{ipAddr}:{port}, \"{connectKey}\"]");
+            debugger.Log($"Connect to [{ipAddr}:{port}, \"{connectKey}\"]");
             peer = netManager.Connect(ipAddr, port, connectKey);
             peer.Tag = this;
         }
