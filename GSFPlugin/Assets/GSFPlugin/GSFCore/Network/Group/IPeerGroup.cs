@@ -16,11 +16,15 @@ namespace GameSystem.GameCore.Network
 
         IPeer GetPeer(int peerID);
 
+        bool ContainsPeer(int peerID);
+
+        bool ContainsPeer(IPeer peer);
+
         bool TryGetPeer(int peerID, out IPeer peer);
 
         List<IPeer> FindAllPeers(Predicate<IPeer> predicate);
 
-        void Exit(IPeer peer);
+        void Exit(IPeer peer, object arg);
 
         void Close();
     }

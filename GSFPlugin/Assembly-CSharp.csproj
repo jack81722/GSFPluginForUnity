@@ -69,11 +69,9 @@
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\ClientBullet.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\ClientSimpleBox.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\Client\ClientGroupAgentManager.cs" />
-    <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\Client\ClientLobbyManager.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\Client\ClientPeerLauncher.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\Client\ClientPeerLauncherEditor.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\IPacketReceiver.cs" />
-    <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\Server\Lobby.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\Server\ServerLauncher.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\Server\ServerLauncherEditor.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\Server\SimpleServer.cs" />

@@ -23,7 +23,7 @@ public class ClientPeerLauncher : MonoBehaviour
 
     private void Awake()
     {
-        debugger = UnityDebugger.instance;
+        debugger = UnityDebugger.GetInstance();
 
         // New client peer before start
         peer = new ClientPeer(FormmaterSerializer.GetInstance(), debugger);

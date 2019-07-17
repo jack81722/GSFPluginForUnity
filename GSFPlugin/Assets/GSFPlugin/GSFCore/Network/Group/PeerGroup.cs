@@ -1,4 +1,5 @@
-﻿using LiteNetLib;
+﻿using GameSystem.GameCore.Debugger;
+using LiteNetLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ namespace GameSystem.GameCore.Network
         public int GroupId { get; private set; }
         public virtual int OperationCode { get; set; }
         protected ISerializer serializer;
+        protected IDebugger debugger;
 
         /// <summary>
         /// Peers in group
@@ -26,7 +28,7 @@ namespace GameSystem.GameCore.Network
         /// <summary>
         /// Queue of requests want to join
         /// </summary>
-        private List<JoinGroupRequest> joinQueueing;
+        private List<JoinGroupRequest> joinQueuing;
         /// <summary>
         /// List of requests are handling but not respond yet
         /// </summary>
@@ -44,13 +46,14 @@ namespace GameSystem.GameCore.Network
         public OnPeerJoinedHandler OnPeerJoinedEvent;
         public OnPeerExitedHandler OnPeerExitedEvent;
 
-        public PeerGroup(ISerializer serializer)
+        public PeerGroup(ISerializer serializer, IDebugger debugger)
         {
             GroupId = idPool.NewID();
             this.serializer = serializer;
+            this.debugger = debugger;
             peers = new Dictionary<int, IPeer>();
             eventPool = new PacketEventPool();
-            joinQueueing = new List<JoinGroupRequest>();
+            joinQueuing = new List<JoinGroupRequest>();
             joinHandling = new List<JoinGroupRequest>();
         }
 
@@ -129,7 +132,7 @@ namespace GameSystem.GameCore.Network
                 return new JoinGroupResponse(GroupId, OperationCode, JoinGroupResponse.ResultType.HasJoined, string.Format("Has joined in group"));
 
             // check if peer is in queue
-            if (joinQueueing.Exists(req => req.Peer.Id == peer.Id))
+            if (joinQueuing.Exists(req => req.Peer.Id == peer.Id))
                 return new JoinGroupResponse(GroupId, OperationCode, JoinGroupResponse.ResultType.InQueue, string.Format("Join request is in queue."));
 
             // check if peer is been handling
@@ -138,12 +141,13 @@ namespace GameSystem.GameCore.Network
 
             // add request into queue and waiting result
             JoinGroupRequest request = new JoinGroupRequest(GroupId, OperationCode, peer, arg);
-            joinQueueing.Add(request);
+            joinQueuing.Add(request);
             JoinGroupResponse result = await request.Task;
             joinHandling.Remove(request);       // remove request from handling (because finished)
             if (result.type == JoinGroupResponse.ResultType.Accepted)
             {
                 lock (peers) peers.Add(peer.Id, peer);
+                peer.TrackGroup(this);
                 try
                 {
                     if (OnPeerJoinedEvent != null)
@@ -151,20 +155,63 @@ namespace GameSystem.GameCore.Network
                 }
                 catch (Exception e)
                 {
-                    
+                    debugger.LogError(e);
                 }
             }
             return result;
         }
 
-        public void Exit(IPeer peer)
+        /// <summary>
+        /// Search and cancel join request from specific list
+        /// </summary>
+        /// <param name="reqList">request list</param>
+        /// <param name="peer">peer of cancellation</param>
+        /// <param name="msg">cancel message</param>
+        /// <param name="arg">cancel argument</param>
+        /// <returns>success of cancellation</returns>
+        private bool CancelRequestFromList(ref List<JoinGroupRequest> reqList, IPeer peer, string msg = "", object arg = null)
         {
-            peers.Remove(peer.Id);
+            JoinGroupRequest request;
+            lock (reqList)
+            {   
+                if ((request = reqList.Find(req => req.Peer == peer)) != null)
+                {
+                    request.Cancel(msg, arg);
+                    reqList.Remove(request);
+                    return true;
+                }
+                else
+                {
+                    // means not found
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Cancel all of join request from specific list
+        /// </summary>
+        /// <param name="reqList">request list</param>
+        /// <param name="msg">cancel message</param>
+        /// <param name="arg">cancel argument</param>
+        /// <returns>success of cancellation</returns>
+        private int CancelAllRequestFromList(ref List<JoinGroupRequest> reqList, string msg = "", object arg = null)
+        {
+            lock (reqList)
+            {
+                int reqCount = reqList.Count;
+                foreach(var request in reqList)
+                {
+                    request.Cancel(msg, arg);
+                }
+                reqList.Clear();
+                return reqCount;
+            }
         }
 
         public int GetJoinQueueingCount()
         {
-            return joinQueueing.Count;
+            return joinQueuing.Count;
         }
 
         public int GetJoinHandlingCount()
@@ -174,36 +221,60 @@ namespace GameSystem.GameCore.Network
 
         public JoinGroupRequest DequeueJoinRequest()
         {
-            lock (joinQueueing)
+            lock (joinQueuing)
             {
-                if (joinQueueing.Count < 0)
+                if (joinQueuing.Count < 0)
                     throw new InvalidOperationException("No queueing request.");
-                JoinGroupRequest request = joinQueueing[0];
-                joinQueueing.RemoveAt(0);
+                JoinGroupRequest request = joinQueuing[0];
+                joinQueuing.RemoveAt(0);
                 // add request into handling
                 joinHandling.Add(request);
                 return request;
             }
         }
 
-        
-        public void ExitAll(string msg, object arg)
+        private Queue<ExitGroupEvent> exitEventQueue = new Queue<ExitGroupEvent>();
+
+        public void Exit(IPeer peer, object arg = null)
         {
-            int queueingCount = joinQueueing.Count;
-            for(int i = 0; i< joinQueueing.Count; i++)
+            string msg = "Exited group.";
+            CancelRequestFromList(ref joinQueuing, peer, msg, arg);
+            CancelRequestFromList(ref joinHandling, peer, msg, arg);
+            lock (peers)
             {
-                joinQueueing[i].Cancel(msg, arg);
+                peers.Remove(peer.Id);
+                peer.UntrackGroup(this);
             }
-            int handlingCount = joinHandling.Count;
-            for(int i = 0; i < joinHandling.Count; i++)
-            {
-                joinHandling[i].Cancel(msg, arg);
-            }
-            joinHandling.Clear();
-            // remove group from peer
+            ExitGroupEvent e = new ExitGroupEvent(GroupId, peer, arg);
+            exitEventQueue.Enqueue(e);
+        }
+
+        public void ExitAll(string msg = "", object arg = null)
+        {
+            // cancel all of queuing requests
+            int queueingCount =
+                CancelAllRequestFromList(ref joinQueuing, msg, arg);
+            // cancel all of handling requests
+            int handlingCount =
+                CancelAllRequestFromList(ref joinHandling, msg, arg);
+            
             int inGroupCount = peers.Count;
+            // untrack current group from peers
+            List<IPeer> inGroups = new List<IPeer>(peers.Values);
+            // clear all peers
             peers.Clear();
-            UnityEngine.Debug.Log($"Group[{GroupId}] exit all peers, queueing cancelled : {queueingCount}, handling cancelled : {handlingCount}, in group : {inGroupCount}");
+            foreach (var peer in inGroups)
+            {
+                peer.UntrackGroup(this);
+            }
+            debugger.Log($"Group[{GroupId}] exit all peers, queueing cancelled : {queueingCount}, handling cancelled : {handlingCount}, in group : {inGroupCount}");
+        }
+
+        public List<ExitGroupEvent> GetExitEventList()
+        {
+            List<ExitGroupEvent> list = new List<ExitGroupEvent>(exitEventQueue);
+            exitEventQueue.Clear();
+            return list;
         }
         #endregion
 
@@ -247,6 +318,16 @@ namespace GameSystem.GameCore.Network
                 List<IPeer> found = new List<IPeer>(peers.Values);
                 return found.FindAll(predicate);
             }
+        }
+
+        public bool ContainsPeer(int peerID)
+        {
+            return peers.ContainsKey(peerID);
+        }
+
+        public bool ContainsPeer(IPeer peer)
+        {
+            return peers.ContainsKey(peer.Id);
         }
         #endregion
 

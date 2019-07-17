@@ -10,7 +10,7 @@ public class ServerLauncher : UnityEngine.MonoBehaviour
     public bool StartOnAwake = true;
     public bool StopOnDestroy = true;
 
-    private IDebugger debugger = UnityDebugger.instance;
+    private IDebugger debugger = UnityDebugger.GetInstance();
 
     public int Port;
     public string ConnectKey;

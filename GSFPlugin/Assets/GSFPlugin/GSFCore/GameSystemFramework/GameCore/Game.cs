@@ -42,7 +42,7 @@ namespace GameSystem.GameCore
             physicEngine = new BulletEngine.BulletPhysicEngine(debugger);
             gameSourceManager = new GameSourceManager(this, physicEngine, debugger);
             mainScene = new Scene(gameSourceManager, debugger);
-            peerGroup = new PeerGroup(FormmaterSerializer.GetInstance());
+            peerGroup = new PeerGroup(FormmaterSerializer.GetInstance(), debugger);
             peerGroup.OperationCode = SimpleGameMetrics.OperationCode.Game;
 
             looper = new LogicLooper(60f);
@@ -97,6 +97,8 @@ namespace GameSystem.GameCore
             gameSourceManager.Update(deltaTime);
             // receive network packet and execute receive events
             peerGroup.Poll();
+            // player manager create player event ?
+            // 
         }
 
         #region Join request methods
@@ -117,6 +119,11 @@ namespace GameSystem.GameCore
             while (peerGroup.GetJoinQueueingCount() > 0)
                 reqs.Add(peerGroup.DequeueJoinRequest());
             return reqs;
+        }
+
+        public List<ExitGroupEvent> GetExitEventList()
+        {
+            return peerGroup.GetExitEventList();
         }
 
         public QueueStatus GetQueueStatus()
@@ -172,9 +179,19 @@ namespace GameSystem.GameCore
             return peerGroup.FindAllPeers(predicate);
         }
 
-        public void Exit(IPeer peer)
+        public void Exit(IPeer peer, object arg = null)
         {
             peerGroup.Exit(peer);
+        }
+
+        public bool ContainsPeer(int peerId)
+        {
+            return peerGroup.ContainsPeer(peerId);
+        }
+
+        public bool ContainsPeer(IPeer peer)
+        {
+            return peerGroup.ContainsPeer(peer.Id);
         }
         #endregion
     }

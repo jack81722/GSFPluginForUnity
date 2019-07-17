@@ -37,6 +37,7 @@ namespace GameSystem.GameCore.Network
             }
         }
         public object UserObject { get; set; }
+        public PeerDisconnectedHandler OnPeerDisconnected { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
         #endregion
 
         public ClientPeer(ISerializer serializer, IDebugger debugger) : base()
@@ -95,6 +96,16 @@ namespace GameSystem.GameCore.Network
         public void Disconnect()
         {
             netManager.DisconnectAll();
+        }
+
+        public void TrackGroup(IPeerGroup group)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void UntrackGroup(IPeerGroup group)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

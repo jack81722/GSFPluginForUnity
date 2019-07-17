@@ -75,8 +75,19 @@ public class SimpleBoxManager : Component
         }
     }
 
-    private void HandleExitRequest()
+    private void HandleExitEvent()
     {
+        var exitEvents = Network_GetExitGroupEvents();
+        for(int i = 0; i < exitEvents.Length; i++)
+        {
+            int boxId = exitEvents[i].peer.Id;
+            if (boxes.TryGetValue(boxId, out ServerSimpleBox box))
+            {
+                // destroy player avater
+                Destroy(box);
+                boxes.Remove(boxId);
+            }
+        }
         // for each exit join request ...
         // remove box from manager
         // remove all bullet which exited player shot?
@@ -178,6 +189,8 @@ public class SimpleBoxManager : Component
         }
 
         HandleJoinRequest();
+
+        HandleExitEvent();
     }
 
     /// <summary>

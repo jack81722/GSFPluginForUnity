@@ -15,6 +15,8 @@ namespace GameSystem.GameCore.Network
 
     public interface IPeer
     {
+        PeerDisconnectedHandler OnPeerDisconnected { get; set; }
+
         /// <summary>
         /// Identity of peer
         /// </summary>
@@ -41,14 +43,12 @@ namespace GameSystem.GameCore.Network
         /// Disconnect method of peer
         /// </summary>
         void Disconnect();
+
+        void TrackGroup(IPeerGroup group);
+        void UntrackGroup(IPeerGroup group);
     }
 
-    public interface IGroupablePeer
-    {
-        IPeer peer { get; }
-        void TrackGroup(IPeerGroup group);
-        void LeaveGroup(IPeerGroup group);
-    }
+    public delegate void PeerDisconnectedHandler(IPeer peer);
 
     public delegate void OnReceivePacketHandler(IPeer peer, object packet, Reliability reliability);
 }

@@ -120,6 +120,11 @@ namespace GameSystem.GameCore
             return Manager.GetJoinRequests();
         }
 
+        public ExitGroupEvent[] Network_GetExitGroupEvents()
+        {
+            return Manager.GetExitGroupEvents();
+        }
+
         public int GetGameID()
         {
             return Manager.GetGameID();

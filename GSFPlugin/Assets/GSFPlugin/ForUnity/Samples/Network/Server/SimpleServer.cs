@@ -14,7 +14,7 @@ public class SimpleServer : Server
 
     public SimpleServer(ISerializer serializer) : base(serializer)
     {
-        debugger = UnityDebugger.instance;
+        debugger = UnityDebugger.GetInstance();
         game = new Game("Simple Game", debugger);
         groups = new Dictionary<int, IPeerGroup>() { { group.GroupId, group }, { game.GroupId, game } };
     }

@@ -358,6 +358,11 @@ namespace GameSystem.GameCore
         {
             return game.GetJoinRequestList().ToArray();
         }
+
+        public ExitGroupEvent[] GetExitGroupEvents()
+        {
+            return game.GetExitEventList().ToArray();
+        }
         #endregion
 
         public int GetGameID()

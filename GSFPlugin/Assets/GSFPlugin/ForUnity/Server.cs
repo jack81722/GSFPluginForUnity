@@ -73,7 +73,7 @@ namespace GameSystem.GameCore.Network
         public Server(ISerializer serializer)
         {
             this.serializer = serializer;
-            group = new PeerGroup(serializer);
+            group = new PeerGroup(serializer, UnityDebugger.GetInstance());
             listener = new EventBasedNetListener();
             netManager = new NetManager(listener);
             group.OnGroupReceiveEvent += OnReceivePacket;
@@ -133,6 +133,14 @@ namespace GameSystem.GameCore.Network
             else
                 request.Reject();
         }
+
+        private void Listener_PeerDisconnectedEvent(NetPeer peer, DisconnectInfo disconnectInfo)
+        {
+            if (group.TryGetPeer(peer.Id, out IPeer p))
+            {
+                p.Disconnect();
+            }
+        }
         #endregion
 
         #region Server main logic
@@ -172,6 +180,7 @@ namespace GameSystem.GameCore.Network
             listener.ConnectionRequestEvent += Listener_ConnectionRequestEvent;
             listener.PeerConnectedEvent += Listener_PeerConnectedEvent;
             listener.NetworkReceiveEvent += Listener_NetworkReceiveEvent;
+            listener.PeerDisconnectedEvent += Listener_PeerDisconnectedEvent;
             // start listen
             Port = port;
             netManager.Start(port);
