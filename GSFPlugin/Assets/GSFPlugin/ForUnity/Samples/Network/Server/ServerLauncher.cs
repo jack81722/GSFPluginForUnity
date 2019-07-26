@@ -3,6 +3,7 @@ using GameSystem.GameCore;
 using GameSystem.GameCore.Debugger;
 using GameSystem.GameCore.Network;
 using GameSystem.GameCore.Physics;
+using System.Text;
 using System.Threading.Tasks;
 
 public class ServerLauncher : UnityEngine.MonoBehaviour
@@ -16,7 +17,7 @@ public class ServerLauncher : UnityEngine.MonoBehaviour
     public string ConnectKey;
     public int MaxPeers;
 
-    private Server server;
+    IServerLaunch server;
     public bool isRunning { get { return server != null && server.isRunning; } }
 
     public void Awake()
@@ -33,21 +34,31 @@ public class ServerLauncher : UnityEngine.MonoBehaviour
 
     public void Launch()
     {
-        Log("Launching server ... ");
+        server.Port = Port;
         server.ConnectKey = ConnectKey;
         server.MaxPeers = MaxPeers;
-        server.Start(Port);
+        server.Start();
     }
 
     public void Stop()
     {
-        if(server != null)
-            server.Close();
+        if (server != null)
+            server.Stop();
     }
 
     public void ResetServer()
     {
-        server = new SimpleServer(FormmaterSerializer.GetInstance());
+        if (server == null)
+        {
+            //server = new UnityServer(debugger);
+            ProcessServer ps = new ProcessServer();
+            ps.OnReceiveOutput += (sender, args) =>
+            {
+                debugger.Log(args.Data);
+            };
+            server = ps;
+        }
+        server.Reset();
     }
 
     private void OnDestroy()
@@ -73,4 +84,19 @@ public class ServerLauncher : UnityEngine.MonoBehaviour
     {
         debugger.LogWarning(obj);
     }
+}
+
+
+
+
+public interface IServerLaunch
+{
+    int Port { get; set; }
+    string ConnectKey { get; set; }
+    int MaxPeers { get; set; }
+
+    bool isRunning { get; }
+    void Start();
+    void Stop();
+    void Reset();
 }

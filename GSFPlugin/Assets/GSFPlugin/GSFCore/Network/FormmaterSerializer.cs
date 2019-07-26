@@ -11,9 +11,9 @@ namespace GameSystem.GameCore.Network
     {
         public T Deserialize<T>(byte[] dgram)
         {
-            //GSFPacket packet = (GSFPacket)ToObject(dgram);
-            //return PacketUtility.Unpack<T>(packet);
-            return (T)ToObject(dgram);
+            object obj = ToObject(dgram);
+            //UnityEngine.Debug.Log(obj.ToString());
+            return (T)obj;
         }
 
         public object Deserialize(byte[] dgram)
@@ -50,6 +50,7 @@ namespace GameSystem.GameCore.Network
             }
             catch (Exception e)
             {
+                UnityDebugger.GetInstance().LogError(e);
                 return new object();
             }
         }
@@ -58,8 +59,23 @@ namespace GameSystem.GameCore.Network
         {
             public override Type BindToType(string assemblyName, string typeName)
             {
-                //Console.WriteLine("Convert : " + String.Format("{0}, {1} ", typeName, Assembly.GetExecutingAssembly().FullName));
-                return Type.GetType(String.Format("{0}, {1} ", typeName, Assembly.GetExecutingAssembly().FullName));
+                Type result = null;
+                var v = AppDomain.CurrentDomain.GetAssemblies();
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    var typeIndex = $"{typeName}, {assembly.FullName}";
+                    result = Type.GetType(typeIndex);
+                    if (result != null)
+                    {
+                        break;
+                    }
+                }
+
+                if (result == null)
+                {
+                    Console.WriteLine($"Serialize Error : can't find {typeName} in all assembly");
+                }
+                return result;
             }
         }
     }

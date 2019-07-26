@@ -71,12 +71,16 @@
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\Client\ClientGroupAgentManager.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\Client\ClientPeerLauncher.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\Client\ClientPeerLauncherEditor.cs" />
+    <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\GenericPacket.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\IPacketReceiver.cs" />
+    <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\Server\ProcessServer.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\Server\ServerLauncher.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\Server\ServerLauncherEditor.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\Server\SimpleServer.cs" />
+    <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\Server\UnityServer.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Network\SimpleGameMetrics.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Packets\BoxInfo.cs" />
+    <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Packets\BulletInfo.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\Packets\GameInformation.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Samples\SimpleGameClientManager.cs" />
     <Compile Include="Assets\GSFPlugin\ForUnity\Server.cs" />

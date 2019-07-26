@@ -210,4 +210,14 @@ namespace GameSystem.GameCore
         Running,
         Closed
     }
+
+    public interface IPlayerManager
+    {
+        // Max player
+        // JoinRequestHandler
+        // ExitEventHandler
+
+        
+    }
+
 }

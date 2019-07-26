@@ -54,7 +54,7 @@ namespace GameSystem.GameCore.Network
         {
             byte[] dgram = new byte[reader.AvailableBytes];
             reader.GetBytes(dgram, dgram.Length);
-            object packet = serializer.Deserialize(dgram);
+            object packet = serializer.Deserialize<GenericPacket>(dgram);
             OnReceivePacket(packet, (Reliability)deliveryMethod);
         }
 
@@ -72,7 +72,7 @@ namespace GameSystem.GameCore.Network
 
         public void Connect(string ipAddr, int port, string connectKey)
         {
-            debugger.Log($"Connect to [{ipAddr}:{port}, \"{connectKey}\"]");
+            //debugger.Log($"Connect to [{ipAddr}:{port}, \"{connectKey}\"]");
             peer = netManager.Connect(ipAddr, port, connectKey);
             peer.Tag = this;
         }

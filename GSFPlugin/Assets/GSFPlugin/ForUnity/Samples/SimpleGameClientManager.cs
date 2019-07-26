@@ -1,4 +1,5 @@
 ﻿using GameSystem.GameCore.Network;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -46,7 +47,7 @@ public class SimpleGameClientManager : MonoBehaviour, IPacketReceiver
                 boxPool.Update((BoxInfo[])gamePacket[1]);
                 break;
             case SimpleGameMetrics.ServerGameSwitchCode.BulletInfo:
-                bulletPool.Update((Bullet.BulletInfo[])gamePacket[1]);
+                bulletPool.Update((BulletInfo[])gamePacket[1]);
                 break;
         }
     }
@@ -64,9 +65,9 @@ public class SimpleGameClientManager : MonoBehaviour, IPacketReceiver
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 peerLauncher.Send(
-                SimpleGameMetrics.OperationCode.Game,
-                new object[] { SimpleGameMetrics.ClientGameSwitchCode.Shoot },
-                Reliability.Unreliable);
+                    SimpleGameMetrics.OperationCode.Game,
+                    new object[] { SimpleGameMetrics.ClientGameSwitchCode.Shoot },
+                    Reliability.Unreliable);
             }
         }
     }
@@ -118,33 +119,50 @@ public class ClientSimpleBoxPool : TrackableObjectPool<ClientSimpleBox>
 
     public void Update(BoxInfo[] packet)
     {
-        tracker.Diff<BoxInfo>(packet, 
-            out List<BoxInfo> added, 
-            out List<ClientSimpleBox> removed, 
-            out List<ClientSimpleBox> existed, 
-            out List<BoxInfo> updated, 
-            Compare);
-        for(int i = 0; i < added.Count; i++)
-        {
-            ClientSimpleBox box = Get(added[i].boxId);
-            box.transform.position = new Vector3(added[i].boxPos[0], added[i].boxPos[1], added[i].boxPos[2]);
-            Quaternion q = new Quaternion(added[i].boxRot[0], added[i].boxRot[1], added[i].boxRot[2], added[i].boxRot[3]);
-            //Debug.Log(q);
-            box.transform.rotation = q;
+        List<BoxInfo> added;
+        List<ClientSimpleBox> removed;
+        List<ClientSimpleBox> existed;
+        List<BoxInfo> updated;
+        try
+        {   
+            // find all difference into added, removed, existed and updated
+            tracker.Diff(
+                packet,
+                out added,
+                out removed,
+                out existed,
+                out updated,
+                CompareBetweenBoxAndInfo);
+
+            // add all new instances
+            for (int i = 0; i < added.Count; i++)
+            {
+                ClientSimpleBox box = Get(added[i].boxId);
+                box.transform.position = new Vector3(added[i].boxPos[0], added[i].boxPos[1], added[i].boxPos[2]);
+                Quaternion q = new Quaternion(added[i].boxRot[0], added[i].boxRot[1], added[i].boxRot[2], added[i].boxRot[3]);
+                box.transform.rotation = q;
+            }
+            // recycle all removed game object
+            Recycle(removed);
+            // update all existed game object by updated packet
+            for (int i = 0; i < existed.Count; i++)
+            {
+                existed[i].transform.position = new Vector3(updated[i].boxPos[0], updated[i].boxPos[1], updated[i].boxPos[2]);
+                Quaternion q = new Quaternion(updated[i].boxRot[0], updated[i].boxRot[1], updated[i].boxRot[2], updated[i].boxRot[3]);
+                existed[i].transform.rotation = q;
+            }
         }
-        Recycle(removed);
-        for(int i = 0; i < existed.Count; i++)
+        catch (Exception e)
         {
-            existed[i].transform.position = new Vector3(updated[i].boxPos[0], updated[i].boxPos[1], updated[i].boxPos[2]);
-            Quaternion q = new Quaternion(updated[i].boxRot[0], updated[i].boxRot[1], updated[i].boxRot[2], updated[i].boxRot[3]);
-            //Debug.Log(q);
-            existed[i].transform.rotation = q;
+#if UNITY_EDITOR
+            Debug.LogError(e);
+#endif
         }
     }
 
-    public int Compare(ClientSimpleBox box, BoxInfo info)
+    public int CompareBetweenBoxAndInfo(ClientSimpleBox box, BoxInfo info)
     {   
-        int result = info.boxId.CompareTo(box.id);
+        int result = box.id.CompareTo(info.boxId);
         return result;
     }
 }
@@ -168,7 +186,6 @@ public class ClientBulletPool : TrackableObjectPool<ClientBullet>
     protected override void GetHandler(ClientBullet item, object arg)
     {
         item.gameObject.SetActive(true);
-        //Debug.Log($"Get new bullet[{arg}]");
         item.id = (int)arg;
     }
 
@@ -194,13 +211,13 @@ public class ClientBulletPool : TrackableObjectPool<ClientBullet>
         GameObject.Destroy(item);
     }
 
-    public void Update(Bullet.BulletInfo[] packet)
+    public void Update(BulletInfo[] packet)
     {
         tracker.Diff(packet,
-            out List<Bullet.BulletInfo> added,
+            out List<BulletInfo> added,
             out List<ClientBullet> removed,
             out List<ClientBullet> existed,
-            out List<Bullet.BulletInfo> updated,
+            out List<BulletInfo> updated,
             Compare);
         //Debug.Log($"Added : {added.Count}, Removed : {removed.Count}, Updated : {updated.Count}");
         for(int i = 0; i < added.Count; i++)
@@ -215,7 +232,7 @@ public class ClientBulletPool : TrackableObjectPool<ClientBullet>
         }
     }
 
-    public int Compare(ClientBullet bullet, Bullet.BulletInfo info)
+    public int Compare(ClientBullet bullet, BulletInfo info)
     {
         return bullet.id.CompareTo(info.id);
     }

@@ -166,7 +166,7 @@ public class SimpleBoxManager : Component
 
             //if (bullets.Count > 0)
             {
-                List<Bullet.BulletInfo> bulletPacket = new List<Bullet.BulletInfo>();
+                List<BulletInfo> bulletPacket = new List<BulletInfo>();
                 for (int i = 0; i < bullets.Count; i++)
                 {
                     if (bullets[i].UpdateBullet(second))
@@ -248,18 +248,7 @@ public class Bullet : Component
         remainTimer = 0;
     }
 
-    [Serializable]
-    public class BulletInfo
-    {
-        public int id;
-        public float[] pos;
-
-        public BulletInfo(int id, Vector3 pos)
-        {
-            this.id = id;
-            this.pos = new float[] { pos.x, pos.y, pos.z };
-        }
-    }
+    
 }
 
 public class BulletPool : TrackableObjectPool<Bullet>

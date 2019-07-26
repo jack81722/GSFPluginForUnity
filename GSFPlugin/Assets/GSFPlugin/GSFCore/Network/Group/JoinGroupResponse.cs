@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace GameSystem.GameCore.Network
 {
     [Serializable]
     public class JoinGroupResponse
-    {   
+    {
         public int groupId;
         public int operationCode;
         public ResultType type;

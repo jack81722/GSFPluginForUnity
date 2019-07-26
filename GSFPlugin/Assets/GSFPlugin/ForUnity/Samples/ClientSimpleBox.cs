@@ -11,9 +11,5 @@ public class ClientSimpleBox : MonoBehaviour
     [PacketMember(1)]
     public Vector3 position;
 
-    private void LateUpdate()
-    {
-        //transform.position = position;
-    }
 }
 
